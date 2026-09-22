@@ -2,4 +2,4 @@
 
 project pertemuan 04 flutter ui fundamentals
 
-update tahap ke 1
+update tahap ke 2
