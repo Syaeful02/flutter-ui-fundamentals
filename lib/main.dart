@@ -23,6 +23,39 @@ class MyApp extends StatelessWidget {
 class LearningPage extends StatelessWidget {
   const LearningPage({super.key});
 
+  // Reusable Widget untuk statistik
+  Widget buildStatCard(
+    String value,
+    String label,
+    IconData icon,
+  ) {
+    return Expanded(
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            children: [
+              Icon(
+                icon,
+                size: 30,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(label),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -44,7 +77,7 @@ class LearningPage extends StatelessWidget {
 
               const SizedBox(height: 12),
 
-              // Nama
+              // Nama mahasiswa
               Text(
                 studentName,
                 style: const TextStyle(
@@ -63,7 +96,7 @@ class LearningPage extends StatelessWidget {
 
               const SizedBox(height: 8),
 
-              // Informasi mahasiswa
+              // Status mahasiswa
               const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -75,7 +108,7 @@ class LearningPage extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              // Card informasi
+              // Informasi mahasiswa
               Card(
                 elevation: 3,
                 child: Padding(
@@ -92,9 +125,13 @@ class LearningPage extends StatelessWidget {
 
                       const SizedBox(height: 12),
 
-                      Text(
-                        'Saya adalah mahasiswa pendidikan teknik informatika semester 5 di universtas pendidikan ganesha. Saya sedang mempelajari Flutter UI Fundamentals, yang mencakup berbagai konsep dan praktik dalam pengembangan antarmuka pengguna menggunakan Flutter, '
-                        'saat ini sedang belajar pemrograman berbasis mobile.',
+                      const Text(
+                        'Saya adalah mahasiswa Pendidikan Teknik Informatika '
+                        'semester 5 di Universitas Pendidikan Ganesha. '
+                        'Saya sedang mempelajari Flutter UI Fundamentals '
+                        'yang mencakup berbagai konsep dan praktik dalam '
+                        'pengembangan antarmuka pengguna menggunakan Flutter. '
+                        'Saat ini saya sedang belajar pemrograman berbasis mobile.',
                         textAlign: TextAlign.center,
                       ),
                     ],
@@ -104,64 +141,30 @@ class LearningPage extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              // Statistik
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  border: Border.all(),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: const [
-                    Column(
-                      children: [
-                        Text(
-                          '8',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(height: 4),
-                        Text('Widget'),
-                      ],
-                    ),
-
-                    Column(
-                      children: [
-                        Text(
-                          '4',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(height: 4),
-                        Text('Layout'),
-                      ],
-                    ),
-
-                    Column(
-                      children: [
-                        Text(
-                          '1',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(height: 4),
-                        Text('State'),
-                      ],
-                    ),
-                  ],
-                ),
+              // Statistik menggunakan reusable widget
+              Row(
+                children: [
+                  buildStatCard(
+                    '8',
+                    'Widget',
+                    Icons.widgets,
+                  ),
+                  buildStatCard(
+                    '4',
+                    'Layout',
+                    Icons.dashboard,
+                  ),
+                  buildStatCard(
+                    '1',
+                    'State',
+                    Icons.data_object,
+                  ),
+                ],
               ),
 
               const SizedBox(height: 20),
 
-              // Container tambahan
+              // Informasi pembelajaran
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
@@ -175,7 +178,9 @@ class LearningPage extends StatelessWidget {
                       Icons.school,
                       size: 40,
                     ),
+
                     SizedBox(height: 8),
+
                     Text(
                       'Flutter UI Practice',
                       style: TextStyle(
@@ -183,7 +188,9 @@ class LearningPage extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+
                     SizedBox(height: 4),
+
                     Text(
                       'Belajar membuat antarmuka aplikasi '
                       'menggunakan widget Flutter.',
