@@ -141,7 +141,7 @@ class LearningPage extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              // Statistik menggunakan reusable widget
+              // Statistik
               Row(
                 children: [
                   buildStatCard(
@@ -161,6 +161,11 @@ class LearningPage extends StatelessWidget {
                   ),
                 ],
               ),
+
+              const SizedBox(height: 20),
+
+              // Input dan State
+              const GreetingCard(),
 
               const SizedBox(height: 20),
 
@@ -201,6 +206,100 @@ class LearningPage extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+// StatefulWidget untuk input dan perubahan state
+class GreetingCard extends StatefulWidget {
+  const GreetingCard({super.key});
+
+  @override
+  State<GreetingCard> createState() => _GreetingCardState();
+}
+
+class _GreetingCardState extends State<GreetingCard> {
+  final TextEditingController nameController = TextEditingController();
+
+  String greeting = 'Belum ada nama yang dimasukkan.';
+
+  void showGreeting() {
+    setState(() {
+      if (nameController.text.trim().isEmpty) {
+        greeting = 'Silakan masukkan nama terlebih dahulu.';
+      } else {
+        greeting = 'Halo, ${nameController.text.trim()}!';
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 3,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            const Text(
+              'Coba Input Nama',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(
+                labelText: 'Masukkan nama',
+                hintText: 'Contoh: Syaeful',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.person),
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: showGreeting,
+                child: const Text('Tampilkan Sapaan'),
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            Text(
+              greeting,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            const Text(
+              '$studentId - $studentName',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+              ),
+            ),
+          ],
         ),
       ),
     );
