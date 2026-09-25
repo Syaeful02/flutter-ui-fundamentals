@@ -56,6 +56,35 @@ class LearningPage extends StatelessWidget {
     );
   }
 
+  // Collection data materi
+  final List<Map<String, dynamic>> topics = const [
+    {
+      'title': 'Widget Dasar',
+      'description': 'Mempelajari widget dasar Flutter.',
+      'icon': Icons.widgets,
+    },
+    {
+      'title': 'Layout Flutter',
+      'description': 'Mempelajari Row, Column, Padding, dan Container.',
+      'icon': Icons.dashboard,
+    },
+    {
+      'title': 'StatefulWidget',
+      'description': 'Mempelajari state dan perubahan tampilan.',
+      'icon': Icons.sync,
+    },
+    {
+      'title': 'Input User',
+      'description': 'Mempelajari TextField dan pengolahan input.',
+      'icon': Icons.input,
+    },
+    {
+      'title': 'JSON Data',
+      'description': 'Mempelajari penggunaan data JSON pada Flutter.',
+      'icon': Icons.data_object,
+    },
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -64,239 +93,112 @@ class LearningPage extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.all(20),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              // Foto profil
-              CircleAvatar(
-                radius: 46,
-                backgroundImage: const AssetImage(
-                  'assets/images/profile_syaeful.jpg',
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              // Nama mahasiswa
-              Text(
-                studentName,
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-
-              // NIM
-              Text(
-                studentId,
-                style: const TextStyle(
-                  fontSize: 16,
-                ),
-              ),
-
-              const SizedBox(height: 8),
-
-              // Status mahasiswa
-              const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.phone_android),
-                  SizedBox(width: 8),
-                  Text('Mobile Programming Student'),
-                ],
-              ),
-
-              const SizedBox(height: 20),
-
-              // Informasi mahasiswa
-              Card(
-                elevation: 3,
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      const Text(
-                        'Informasi mahasiswa',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      const Text(
-                        'Saya adalah mahasiswa Pendidikan Teknik Informatika '
-                        'semester 5 di Universitas Pendidikan Ganesha. '
-                        'Saya sedang mempelajari Flutter UI Fundamentals '
-                        'yang mencakup berbagai konsep dan praktik dalam '
-                        'pengembangan antarmuka pengguna menggunakan Flutter. '
-                        'Saat ini saya sedang belajar pemrograman berbasis mobile.',
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              // Statistik
-              Row(
-                children: [
-                  buildStatCard(
-                    '8',
-                    'Widget',
-                    Icons.widgets,
-                  ),
-                  buildStatCard(
-                    '4',
-                    'Layout',
-                    Icons.dashboard,
-                  ),
-                  buildStatCard(
-                    '1',
-                    'State',
-                    Icons.data_object,
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 20),
-
-              // Input dan State
-              const GreetingCard(),
-
-              const SizedBox(height: 20),
-
-              // Informasi pembelajaran
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(),
-                ),
-                child: const Column(
-                  children: [
-                    Icon(
-                      Icons.school,
-                      size: 40,
-                    ),
-
-                    SizedBox(height: 8),
-
-                    Text(
-                      'Flutter UI Practice',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-
-                    SizedBox(height: 4),
-
-                    Text(
-                      'Belajar membuat antarmuka aplikasi '
-                      'menggunakan widget Flutter.',
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// StatefulWidget untuk input dan perubahan state
-class GreetingCard extends StatefulWidget {
-  const GreetingCard({super.key});
-
-  @override
-  State<GreetingCard> createState() => _GreetingCardState();
-}
-
-class _GreetingCardState extends State<GreetingCard> {
-  final TextEditingController nameController = TextEditingController();
-
-  String greeting = 'Belum ada nama yang dimasukkan.';
-
-  void showGreeting() {
-    setState(() {
-      if (nameController.text.trim().isEmpty) {
-        greeting = 'Silakan masukkan nama terlebih dahulu.';
-      } else {
-        greeting = 'Halo, ${nameController.text.trim()}!';
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    nameController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 3,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            const Text(
-              'Coba Input Nama',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(
-                labelText: 'Masukkan nama',
-                hintText: 'Contoh: Syaeful',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.person),
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: showGreeting,
-                child: const Text('Tampilkan Sapaan'),
+            // Identitas mahasiswa
+            CircleAvatar(
+              radius: 46,
+              backgroundImage: const AssetImage(
+                'assets/images/profile_syaeful.jpg',
               ),
             ),
 
             const SizedBox(height: 12),
 
             Text(
-              greeting,
-              textAlign: TextAlign.center,
+              studentName,
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            Text(
+              studentId,
               style: const TextStyle(
                 fontSize: 16,
-                fontWeight: FontWeight.bold,
               ),
             ),
 
             const SizedBox(height: 8),
 
-            const Text(
-              '$studentId - $studentName',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 13,
+            const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.phone_android),
+                SizedBox(width: 8),
+                Text('Mobile Programming Student'),
+              ],
+            ),
+
+            const SizedBox(height: 20),
+
+            // Statistik
+            Row(
+              children: [
+                buildStatCard(
+                  '8',
+                  'Widget',
+                  Icons.widgets,
+                ),
+                buildStatCard(
+                  '4',
+                  'Layout',
+                  Icons.dashboard,
+                ),
+                buildStatCard(
+                  '1',
+                  'State',
+                  Icons.data_object,
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 20),
+
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Materi yang Dipelajari',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // List materi
+            Expanded(
+              child: ListView.builder(
+                itemCount: topics.length,
+                itemBuilder: (context, index) {
+                  final topic = topics[index];
+
+                  return Card(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    child: ListTile(
+                      leading: Icon(
+                        topic['icon'],
+                        size: 32,
+                      ),
+                      title: Text(
+                        topic['title'],
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      subtitle: Text(
+                        topic['description'],
+                      ),
+                      trailing: const Icon(
+                        Icons.arrow_forward_ios,
+                        size: 16,
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           ],
