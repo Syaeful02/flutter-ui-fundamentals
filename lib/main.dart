@@ -56,37 +56,52 @@ class LearningPage extends StatelessWidget {
     );
   }
 
-  // Collection data materi
+  // Data materi dan status pembelajaran
   final List<Map<String, dynamic>> topics = const [
     {
       'title': 'Widget Dasar',
       'description': 'Mempelajari widget dasar Flutter.',
       'icon': Icons.widgets,
+      'completed': true,
     },
     {
       'title': 'Layout Flutter',
       'description': 'Mempelajari Row, Column, Padding, dan Container.',
       'icon': Icons.dashboard,
+      'completed': true,
     },
     {
-      'title': 'StatefulWidget',
-      'description': 'Mempelajari state dan perubahan tampilan.',
-      'icon': Icons.sync,
+      'title': 'Reusable Widget',
+      'description': 'Mempelajari pembuatan widget yang dapat digunakan kembali.',
+      'icon': Icons.widgets_outlined,
+      'completed': true,
     },
     {
-      'title': 'Input User',
-      'description': 'Mempelajari TextField dan pengolahan input.',
+      'title': 'Input dan State',
+      'description': 'Mempelajari TextField, StatefulWidget, dan setState.',
       'icon': Icons.input,
+      'completed': true,
     },
     {
-      'title': 'JSON Data',
-      'description': 'Mempelajari penggunaan data JSON pada Flutter.',
+      'title': 'Collection dan List',
+      'description': 'Mempelajari List dan ListView.builder.',
+      'icon': Icons.list,
+      'completed': true,
+    },
+    {
+      'title': 'Static JSON',
+      'description': 'Mempelajari penggunaan data JSON statik.',
       'icon': Icons.data_object,
+      'completed': false,
     },
   ];
 
   @override
   Widget build(BuildContext context) {
+    final int completedCount = topics
+        .where((topic) => topic['completed'] == true)
+        .length;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Flutter UI Fundamentals'),
@@ -95,7 +110,7 @@ class LearningPage extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            // Identitas mahasiswa
+            // Foto profil
             CircleAvatar(
               radius: 46,
               backgroundImage: const AssetImage(
@@ -105,6 +120,7 @@ class LearningPage extends StatelessWidget {
 
             const SizedBox(height: 12),
 
+            // Nama mahasiswa
             Text(
               studentName,
               style: const TextStyle(
@@ -113,6 +129,7 @@ class LearningPage extends StatelessWidget {
               ),
             ),
 
+            // NIM
             Text(
               studentId,
               style: const TextStyle(
@@ -122,6 +139,7 @@ class LearningPage extends StatelessWidget {
 
             const SizedBox(height: 8),
 
+            // Status mahasiswa
             const Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -156,28 +174,39 @@ class LearningPage extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            const Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Materi yang Dipelajari',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+            // Judul dan jumlah materi selesai
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Materi yang Dipelajari',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
+                Text(
+                  '$completedCount/${topics.length} selesai',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ),
 
             const SizedBox(height: 12),
 
-            // List materi
+            // Dynamic List
             Expanded(
-              child: ListView.builder(
+              child: ListView.separated(
                 itemCount: topics.length,
+                separatorBuilder: (context, index) =>
+                    const SizedBox(height: 8),
                 itemBuilder: (context, index) {
                   final topic = topics[index];
+                  final bool completed = topic['completed'] == true;
 
                   return Card(
-                    margin: const EdgeInsets.only(bottom: 10),
                     child: ListTile(
                       leading: Icon(
                         topic['icon'],
@@ -192,9 +221,12 @@ class LearningPage extends StatelessWidget {
                       subtitle: Text(
                         topic['description'],
                       ),
-                      trailing: const Icon(
-                        Icons.arrow_forward_ios,
-                        size: 16,
+                      trailing: Icon(
+                        completed
+                            ? Icons.check_circle
+                            : Icons.radio_button_unchecked,
+                        color: completed ? Colors.green : Colors.grey,
+                        size: 28,
                       ),
                     ),
                   );
