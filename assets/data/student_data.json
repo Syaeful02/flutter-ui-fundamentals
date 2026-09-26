@@ -1,0 +1,41 @@
+{
+  "student": {
+    "name": "Syaeful Darmawan",
+    "nim": "2415051059",
+    "program": "Pendidikan Teknik Informatika",
+    "semester": 5,
+    "university": "Universitas Pendidikan Ganesha"
+  },
+  "courses": [
+    {
+      "code": "TIKS124406",
+      "name": "Jaringan Komputer",
+      "credits": 3,
+      "status": "Selesai"
+    },
+    {
+      "code": "TIKS124407",
+      "name": "Pemrograman Berbasis Web",
+      "credits": 3,
+      "status": "Selesai"
+    },
+    {
+      "code": "TIKS124408",
+      "name": "Pemrograman Mobile",
+      "credits": 3,
+      "status": "Sedang Dipelajari"
+    },
+    {
+      "code": "TIKS124409",
+      "name": "Metodologi Penelitian Informatika",
+      "credits": 3,
+      "status": "Sedang Dipelajari"
+    },
+    {
+      "code": "TIKS124410",
+      "name": "Pengembangan Media Pembelajaran",
+      "credits": 3,
+      "status": "Belum"
+    }
+  ]
+}
