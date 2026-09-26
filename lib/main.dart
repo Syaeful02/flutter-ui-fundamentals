@@ -23,8 +23,31 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class LearningPage extends StatelessWidget {
+class LearningPage extends StatefulWidget {
   const LearningPage({super.key});
+
+  @override
+  State<LearningPage> createState() => _LearningPageState();
+}
+
+class _LearningPageState extends State<LearningPage> {
+  late Future<Map<String, dynamic>> studentFuture;
+
+  @override
+  void initState() {
+    super.initState();
+
+    studentFuture = loadStudentData();
+  }
+
+  // Membaca file JSON dari assets
+  Future<Map<String, dynamic>> loadStudentData() async {
+    final String jsonString = await rootBundle.loadString(
+      'assets/data/student_data.json',
+    );
+
+    return jsonDecode(jsonString) as Map<String, dynamic>;
+  }
 
   // Reusable Widget untuk statistik
   Widget buildStatCard(
@@ -59,15 +82,6 @@ class LearningPage extends StatelessWidget {
     );
   }
 
-  // Membaca file JSON dari assets
-  Future<Map<String, dynamic>> loadStudentData() async {
-    final String jsonString = await rootBundle.loadString(
-      'assets/data/student_data.json',
-    );
-
-    return jsonDecode(jsonString) as Map<String, dynamic>;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -75,38 +89,61 @@ class LearningPage extends StatelessWidget {
         title: const Text('Flutter UI Fundamentals'),
       ),
       body: FutureBuilder<Map<String, dynamic>>(
-        future: loadStudentData(),
+        future: studentFuture,
         builder: (context, snapshot) {
+          // Loading
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
               child: CircularProgressIndicator(),
             );
           }
 
+          // Error
           if (snapshot.hasError) {
             return Center(
-              child: Text(
-                'Terjadi kesalahan: ${snapshot.error}',
-                textAlign: TextAlign.center,
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Text(
+                  'Terjadi kesalahan saat membaca data:\n'
+                  '${snapshot.error}',
+                  textAlign: TextAlign.center,
+                ),
               ),
             );
           }
 
+          // Data kosong
           if (!snapshot.hasData) {
             return const Center(
-              child: Text('Data tidak tersedia.'),
+              child: Text(
+                'Data tidak tersedia.',
+              ),
             );
           }
 
+          // Data berhasil dibaca
           final data = snapshot.data!;
-          final student = data['student'] as Map<String, dynamic>;
-          final courses = data['courses'] as List<dynamic>;
 
-          final String name = student['name'] as String;
-          final String nim = student['nim'] as String;
-          final String program = student['program'] as String;
-          final int semester = student['semester'] as int;
-          final String university = student['university'] as String;
+          final student =
+              data['student'] as Map<String, dynamic>;
+
+          final courses =
+              data['courses'] as List<dynamic>;
+
+          final String name =
+              student['name'] as String;
+
+          final String nim =
+              student['nim'] as String;
+
+          final String program =
+              student['program'] as String;
+
+          final int semester =
+              student['semester'] as int;
+
+          final String university =
+              student['university'] as String;
 
           return Padding(
             padding: const EdgeInsets.all(20),
@@ -177,6 +214,7 @@ class LearningPage extends StatelessWidget {
 
                 const SizedBox(height: 20),
 
+                // Judul mata kuliah
                 const Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
@@ -190,7 +228,7 @@ class LearningPage extends StatelessWidget {
 
                 const SizedBox(height: 12),
 
-                // Daftar mata kuliah dari JSON
+                // Daftar mata kuliah
                 Expanded(
                   child: ListView.builder(
                     itemCount: courses.length,
@@ -199,7 +237,9 @@ class LearningPage extends StatelessWidget {
                           courses[index] as Map<String, dynamic>;
 
                       return Card(
-                        margin: const EdgeInsets.only(bottom: 10),
+                        margin: const EdgeInsets.only(
+                          bottom: 10,
+                        ),
                         child: ListTile(
                           leading: const Icon(
                             Icons.menu_book,
