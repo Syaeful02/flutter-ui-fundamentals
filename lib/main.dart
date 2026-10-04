@@ -13,7 +13,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Adaptive Navigation',
+      title: 'Interaction Demo',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
 }
 
 // ============================================================
-// MAIN SHELL — adaptive navigation
+// MAIN SHELL — adaptive navigation (dari Tahap 11)
 // ============================================================
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -35,7 +35,6 @@ class MainShell extends StatefulWidget {
 
 class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
-
   final Set<String> _favorites = {};
 
   Map<String, dynamic>? _student;
@@ -51,7 +50,6 @@ class _MainShellState extends State<MainShell> {
   Future<void> _loadData() async {
     final raw = await rootBundle.loadString('assets/data/student_data.json');
     final data = json.decode(raw) as Map<String, dynamic>;
-
     setState(() {
       _student = data['student'] as Map<String, dynamic>;
       _courses = data['courses'] as List<dynamic>;
@@ -59,14 +57,30 @@ class _MainShellState extends State<MainShell> {
     });
   }
 
-  void _toggleFavorite(String code) {
+  void _toggleFavorite(String code, {bool showFeedback = true}) {
+    final wasFav = _favorites.contains(code);
     setState(() {
-      if (_favorites.contains(code)) {
+      if (wasFav) {
         _favorites.remove(code);
       } else {
         _favorites.add(code);
       }
     });
+
+    if (showFeedback) {
+      final course = _courses!.firstWhere(
+        (c) => (c as Map<String, dynamic>)['code'] == code,
+      ) as Map<String, dynamic>;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '"${course['name']}" ${wasFav ? 'dihapus dari' : 'ditambahkan ke'} Favorite',
+          ),
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   @override
@@ -78,36 +92,27 @@ class _MainShellState extends State<MainShell> {
     }
 
     final pages = [
-      _HomeTab(
-        student: _student!,
-        courses: _courses!,
-        favorites: _favorites,
-      ),
+      _HomeTab(student: _student!, courses: _courses!, favorites: _favorites),
       _CoursesTab(
         courses: _courses!,
         favorites: _favorites,
         onToggleFavorite: _toggleFavorite,
       ),
-      _ProfileTab(
-        student: _student!,
-        favoriteCount: _favorites.length,
-      ),
+      _ProfileTab(student: _student!, favoriteCount: _favorites.length),
     ];
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final bool isExpanded = constraints.maxWidth >= 840;
+        final isExpanded = constraints.maxWidth >= 840;
 
         if (isExpanded) {
-          // ============ EXPANDED: NavigationRail ============
           return Scaffold(
             body: Row(
               children: [
                 NavigationRail(
                   selectedIndex: _currentIndex,
-                  onDestinationSelected: (index) {
-                    setState(() => _currentIndex = index);
-                  },
+                  onDestinationSelected: (i) =>
+                      setState(() => _currentIndex = i),
                   labelType: NavigationRailLabelType.all,
                   leading: Padding(
                     padding: const EdgeInsets.only(top: 12, bottom: 8),
@@ -142,27 +147,18 @@ class _MainShellState extends State<MainShell> {
                 ),
                 const VerticalDivider(width: 1),
                 Expanded(
-                  child: IndexedStack(
-                    index: _currentIndex,
-                    children: pages,
-                  ),
+                  child: IndexedStack(index: _currentIndex, children: pages),
                 ),
               ],
             ),
           );
         }
 
-        // ============ COMPACT / MEDIUM: NavigationBar ============
         return Scaffold(
-          body: IndexedStack(
-            index: _currentIndex,
-            children: pages,
-          ),
+          body: IndexedStack(index: _currentIndex, children: pages),
           bottomNavigationBar: NavigationBar(
             selectedIndex: _currentIndex,
-            onDestinationSelected: (index) {
-              setState(() => _currentIndex = index);
-            },
+            onDestinationSelected: (i) => setState(() => _currentIndex = i),
             destinations: const [
               NavigationDestination(
                 icon: Icon(Icons.home_outlined),
@@ -272,8 +268,8 @@ class _HomeTab extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           const Text(
-            'Navigasi akan otomatis berubah: NavigationBar di layar kecil, '
-            'NavigationRail di layar lebar (≥ 840 px).',
+            'Tahap 12: tap card untuk buka detail, tap ikon ❤️ untuk '
+            'favorit, atau tekan lama card untuk lihat info singkat.',
             style: TextStyle(fontSize: 14, height: 1.5),
           ),
         ],
@@ -311,10 +307,7 @@ class _SummaryCard extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             value,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 2),
           Text(
@@ -333,7 +326,7 @@ class _SummaryCard extends StatelessWidget {
 class _CoursesTab extends StatelessWidget {
   final List<dynamic> courses;
   final Set<String> favorites;
-  final void Function(String code) onToggleFavorite;
+  final void Function(String code, {bool showFeedback}) onToggleFavorite;
 
   const _CoursesTab({
     required this.courses,
@@ -341,28 +334,41 @@ class _CoursesTab extends StatelessWidget {
     required this.onToggleFavorite,
   });
 
-  Future<void> _openDetail(
-      BuildContext context, Map<String, dynamic> course) async {
-    final result = await Navigator.push<bool>(
+  void _openDetail(BuildContext context, Map<String, dynamic> course) {
+    Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => CourseDetailPage(course: course),
+      MaterialPageRoute(builder: (_) => CourseDetailPage(course: course)),
+    );
+  }
+
+  void _showQuickInfo(BuildContext context, Map<String, dynamic> course) {
+    // Gunakan showDialog sebagai feedback long press
+    showDialog<void>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(course['name'] as String),
+        content: Text(
+          'Kode: ${course['code']}\n'
+          'SKS: ${course['credits']}\n'
+          'Status: ${course['status']}\n\n'
+          'Tekan lama untuk melihat info singkat seperti ini. '
+          'Tap card untuk membuka detail lengkap.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Tutup'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _openDetail(context, course);
+            },
+            child: const Text('Buka Detail'),
+          ),
+        ],
       ),
     );
-
-    if (result == true && context.mounted) {
-      final wasFav = favorites.contains(course['code']);
-      onToggleFavorite(course['code'] as String);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            '"${course['name']}" ${wasFav ? 'dihapus dari' : 'ditambahkan ke'} Favorite',
-          ),
-          duration: const Duration(seconds: 2),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    }
   }
 
   @override
@@ -375,10 +381,12 @@ class _CoursesTab extends StatelessWidget {
         itemBuilder: (context, i) {
           final c = courses[i] as Map<String, dynamic>;
           final isFav = favorites.contains(c['code']);
-          return _CourseListTile(
+          return _CourseCard(
             course: c,
             isFavorite: isFav,
             onTap: () => _openDetail(context, c),
+            onToggleFavorite: () => onToggleFavorite(c['code'] as String),
+            onLongPress: () => _showQuickInfo(context, c),
           );
         },
       ),
@@ -386,15 +394,22 @@ class _CoursesTab extends StatelessWidget {
   }
 }
 
-class _CourseListTile extends StatelessWidget {
+// ============================================================
+// COURSE CARD — InkWell + IconButton + GestureDetector
+// ============================================================
+class _CourseCard extends StatelessWidget {
   final Map<String, dynamic> course;
   final bool isFavorite;
   final VoidCallback onTap;
+  final VoidCallback onToggleFavorite;
+  final VoidCallback onLongPress;
 
-  const _CourseListTile({
+  const _CourseCard({
     required this.course,
     required this.isFavorite,
     required this.onTap,
+    required this.onToggleFavorite,
+    required this.onLongPress,
   });
 
   MaterialColor _statusColor(String status) {
@@ -419,35 +434,29 @@ class _CourseListTile extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
       ),
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
-        borderRadius: BorderRadius.circular(14),
+        // 1) Tap di area mana saja → buka detail (dengan ripple Material)
         onTap: onTap,
+
+        // 2) Long press → tampilkan info singkat
+        onLongPress: onLongPress,
+
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 16, 8, 16),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            course['name'] as String,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        if (isFavorite)
-                          const Icon(
-                            Icons.favorite,
-                            color: Colors.red,
-                            size: 18,
-                          ),
-                      ],
+                    Text(
+                      course['name'] as String,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -489,7 +498,16 @@ class _CourseListTile extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right, color: Colors.grey),
+
+              // 3) IconButton — toggle favorite tanpa membuka detail
+              IconButton(
+                onPressed: onToggleFavorite,
+                tooltip: isFavorite ? 'Hapus dari Favorite' : 'Tambah ke Favorite',
+                icon: Icon(
+                  isFavorite ? Icons.favorite : Icons.favorite_border,
+                  color: isFavorite ? Colors.red : Colors.grey,
+                ),
+              ),
             ],
           ),
         ),
@@ -606,10 +624,7 @@ class _ProfileItem extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade600,
-                  ),
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                 ),
                 const SizedBox(height: 2),
                 Text(
