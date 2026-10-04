@@ -13,7 +13,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Passing Data',
+      title: 'Returning Data',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
@@ -38,6 +38,9 @@ class _HomePageState extends State<HomePage> {
   List<dynamic>? _courses;
   bool _loading = true;
 
+  // Menyimpan daftar kode course yang difavoritkan
+  final Set<String> _favorites = {};
+
   @override
   void initState() {
     super.initState();
@@ -55,6 +58,32 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  Future<void> _openDetail(Map<String, dynamic> course) async {
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CourseDetailPage(course: course),
+      ),
+    );
+
+    if (result == true && mounted) {
+      final code = course['code'] as String;
+      final name = course['name'] as String;
+
+      setState(() {
+        _favorites.add(code);
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('"$name" ditambahkan ke Favorite'),
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -66,6 +95,7 @@ class _HomePageState extends State<HomePage> {
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
+                // Header identitas
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(20),
@@ -98,6 +128,25 @@ class _HomePageState extends State<HomePage> {
                         _student!['program'] as String,
                         style: const TextStyle(color: Colors.white70),
                       ),
+                      if (_favorites.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.25),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            '${_favorites.length} course difavoritkan',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -111,14 +160,8 @@ class _HomePageState extends State<HomePage> {
                   final c = course as Map<String, dynamic>;
                   return _CourseListTile(
                     course: c,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => CourseDetailPage(course: c),
-                        ),
-                      );
-                    },
+                    isFavorite: _favorites.contains(c['code']),
+                    onTap: () => _openDetail(c),
                   );
                 }),
               ],
@@ -132,9 +175,14 @@ class _HomePageState extends State<HomePage> {
 // ============================================================
 class _CourseListTile extends StatelessWidget {
   final Map<String, dynamic> course;
+  final bool isFavorite;
   final VoidCallback onTap;
 
-  const _CourseListTile({required this.course, required this.onTap});
+  const _CourseListTile({
+    required this.course,
+    required this.isFavorite,
+    required this.onTap,
+  });
 
   MaterialColor _statusColor(String status) {
     switch (status) {
@@ -169,12 +217,24 @@ class _CourseListTile extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      course['name'] as String,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            course['name'] as String,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        if (isFavorite)
+                          const Icon(
+                            Icons.favorite,
+                            color: Colors.red,
+                            size: 18,
+                          ),
+                      ],
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -258,6 +318,7 @@ class CourseDetailPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Header gradient
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
@@ -311,6 +372,7 @@ class CourseDetailPage extends StatelessWidget {
 
             const SizedBox(height: 24),
 
+            // Deskripsi
             const Text(
               'Deskripsi',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -323,6 +385,8 @@ class CourseDetailPage extends StatelessWidget {
             ),
 
             const SizedBox(height: 28),
+
+            // Info mahasiswa
             const Divider(),
             const SizedBox(height: 12),
             const Text(
@@ -335,10 +399,33 @@ class CourseDetailPage extends StatelessWidget {
             const Text('Pendidikan Teknik Informatika'),
             const Text('Universitas Pendidikan Ganesha'),
 
-            const SizedBox(height: 28),
+            const SizedBox(height: 32),
+
+            // ==================================================
+            // TOMBOL FAVORITE — mengembalikan nilai `true`
+            // ==================================================
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton.icon(
+              child: FilledButton.icon(
+                onPressed: () {
+                  // Kembali ke HomePage sambil mengirim `true`
+                  Navigator.pop(context, true);
+                },
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                icon: const Icon(Icons.favorite),
+                label: const Text('Pilih / Favoritkan'),
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // Tombol kembali biasa (tanpa result)
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
                 onPressed: () => Navigator.pop(context),
                 icon: const Icon(Icons.arrow_back),
                 label: const Text('Kembali'),
