@@ -14,229 +14,179 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Expanded Flexible Wrap',
+      title: 'Responsive GridView',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.blue,
         ),
         useMaterial3: true,
       ),
-      home: const ResponsiveLayoutPage(),
+      home: const GridResponsivePage(),
     );
   }
 }
 
-class ResponsiveLayoutPage extends StatelessWidget {
-  const ResponsiveLayoutPage({super.key});
+class GridResponsivePage extends StatelessWidget {
+  const GridResponsivePage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Expanded, Flexible & Wrap'),
+        title: const Text('Responsive GridView'),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Tahap 4: Responsive Layout',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final double width = constraints.maxWidth;
 
-            const SizedBox(height: 8),
+          int crossAxisCount;
 
-            const Text(
-              '$studentId - $studentName',
-              style: TextStyle(
-                fontSize: 16,
-              ),
-            ),
+          if (width < 600) {
+            crossAxisCount = 1;
+          } else if (width < 900) {
+            crossAxisCount = 2;
+          } else {
+            crossAxisCount = 3;
+          }
 
-            const SizedBox(height: 28),
-
-            const Text(
-              '1. Expanded',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            Row(
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  flex: 2,
-                  child: Container(
-                    height: 100,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: Colors.blue.shade200,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Text(
-                      'Expanded 2',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                const Text(
+                  'Tahap 5: GridView Responsive',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
 
-                const SizedBox(width: 12),
+                const SizedBox(height: 8),
 
-                Expanded(
-                  flex: 1,
-                  child: Container(
-                    height: 100,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: Colors.blue.shade100,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Text(
-                      'Expanded 1',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                const Text(
+                  '$studentId - $studentName',
+                  style: TextStyle(
+                    fontSize: 16,
                   ),
+                ),
+
+                const SizedBox(height: 8),
+
+                Text(
+                  'Lebar browser: ${width.toStringAsFixed(0)} px',
+                  style: const TextStyle(
+                    fontSize: 16,
+                  ),
+                ),
+
+                const SizedBox(height: 8),
+
+                Text(
+                  'Jumlah kolom: $crossAxisCount',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: 6,
+                  gridDelegate:
+                      SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: crossAxisCount,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                    childAspectRatio: 1.5,
+                  ),
+                  itemBuilder: (context, index) {
+                    return CourseCard(
+                      number: index + 1,
+                      title: courseNames[index],
+                      icon: courseIcons[index],
+                    );
+                  },
                 ),
               ],
             ),
-
-            const SizedBox(height: 28),
-
-            const Text(
-              '2. Flexible',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            Row(
-              children: [
-                Flexible(
-                  flex: 2,
-                  child: Container(
-                    height: 100,
-                    padding: const EdgeInsets.all(16),
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: Colors.green.shade200,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Text(
-                      'Flexible 2 - Ukuran dapat menyesuaikan ruang',
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-
-                const SizedBox(width: 12),
-
-                Flexible(
-                  flex: 1,
-                  child: Container(
-                    height: 100,
-                    padding: const EdgeInsets.all(16),
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: Colors.green.shade100,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Text(
-                      'Flexible 1',
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 28),
-
-            const Text(
-              '3. Wrap',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            const Text(
-              'Daftar kemampuan yang dapat berpindah ke baris berikutnya '
-              'ketika ruang tidak mencukupi.',
-            ),
-
-            const SizedBox(height: 16),
-
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: const [
-                SkillChip(
-                  icon: Icons.code,
-                  label: 'Flutter',
-                ),
-                SkillChip(
-                  icon: Icons.language,
-                  label: 'Web Programming',
-                ),
-                SkillChip(
-                  icon: Icons.network_check,
-                  label: 'Computer Networking',
-                ),
-                SkillChip(
-                  icon: Icons.storage,
-                  label: 'Database',
-                ),
-                SkillChip(
-                  icon: Icons.phone_android,
-                  label: 'Mobile Development',
-                ),
-                SkillChip(
-                  icon: Icons.design_services,
-                  label: 'UI Design',
-                ),
-              ],
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 }
 
-class SkillChip extends StatelessWidget {
-  final IconData icon;
-  final String label;
+const List<String> courseNames = [
+  'Jaringan Komputer',
+  'Pemrograman Berbasis Web',
+  'Pemrograman Mobile',
+  'Metodologi Penelitian',
+  'Pengembangan Media',
+  'Basis Data',
+];
 
-  const SkillChip({
+const List<IconData> courseIcons = [
+  Icons.lan,
+  Icons.web,
+  Icons.phone_android,
+  Icons.menu_book,
+  Icons.school,
+  Icons.storage,
+];
+
+class CourseCard extends StatelessWidget {
+  final int number;
+  final String title;
+  final IconData icon;
+
+  const CourseCard({
     super.key,
+    required this.number,
+    required this.title,
     required this.icon,
-    required this.label,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Chip(
-      avatar: Icon(
-        icon,
-        size: 18,
+    return Card(
+      elevation: 3,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 45,
+            ),
+
+            const SizedBox(height: 12),
+
+            Text(
+              'Course $number',
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
       ),
-      label: Text(label),
     );
   }
 }
