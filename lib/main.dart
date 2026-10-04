@@ -13,7 +13,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Interaction Demo',
+      title: 'Form Validation',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
 }
 
 // ============================================================
-// MAIN SHELL — adaptive navigation (dari Tahap 11)
+// MAIN SHELL — adaptive navigation
 // ============================================================
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -268,8 +268,7 @@ class _HomeTab extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           const Text(
-            'Tahap 12: tap card untuk buka detail, tap ikon ❤️ untuk '
-            'favorit, atau tekan lama card untuk lihat info singkat.',
+            'Buka tab Profile untuk mencoba form feedback dengan validasi.',
             style: TextStyle(fontSize: 14, height: 1.5),
           ),
         ],
@@ -342,7 +341,6 @@ class _CoursesTab extends StatelessWidget {
   }
 
   void _showQuickInfo(BuildContext context, Map<String, dynamic> course) {
-    // Gunakan showDialog sebagai feedback long press
     showDialog<void>(
       context: context,
       builder: (_) => AlertDialog(
@@ -394,9 +392,6 @@ class _CoursesTab extends StatelessWidget {
   }
 }
 
-// ============================================================
-// COURSE CARD — InkWell + IconButton + GestureDetector
-// ============================================================
 class _CourseCard extends StatelessWidget {
   final Map<String, dynamic> course;
   final bool isFavorite;
@@ -436,12 +431,8 @@ class _CourseCard extends StatelessWidget {
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        // 1) Tap di area mana saja → buka detail (dengan ripple Material)
         onTap: onTap,
-
-        // 2) Long press → tampilkan info singkat
         onLongPress: onLongPress,
-
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 8, 16),
           child: Row(
@@ -498,11 +489,11 @@ class _CourseCard extends StatelessWidget {
                   ],
                 ),
               ),
-
-              // 3) IconButton — toggle favorite tanpa membuka detail
               IconButton(
                 onPressed: onToggleFavorite,
-                tooltip: isFavorite ? 'Hapus dari Favorite' : 'Tambah ke Favorite',
+                tooltip: isFavorite
+                    ? 'Hapus dari Favorite'
+                    : 'Tambah ke Favorite',
                 icon: Icon(
                   isFavorite ? Icons.favorite : Icons.favorite_border,
                   color: isFavorite ? Colors.red : Colors.grey,
@@ -517,7 +508,7 @@ class _CourseCard extends StatelessWidget {
 }
 
 // ============================================================
-// TAB 3 — PROFILE
+// TAB 3 — PROFILE + FEEDBACK FORM
 // ============================================================
 class _ProfileTab extends StatelessWidget {
   final Map<String, dynamic> student;
@@ -532,11 +523,11 @@ class _ProfileTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Profile')),
-      body: ListView(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
-        children: [
-          Center(
-            child: CircleAvatar(
+        child: Column(
+          children: [
+            CircleAvatar(
               radius: 46,
               backgroundColor: Colors.blue.shade100,
               child: Text(
@@ -548,46 +539,48 @@ class _ProfileTab extends StatelessWidget {
                 ),
               ),
             ),
-          ),
-          const SizedBox(height: 16),
-          Center(
-            child: Text(
+            const SizedBox(height: 16),
+            Text(
               student['name'] as String,
               style: const TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
               ),
             ),
-          ),
-          const SizedBox(height: 4),
-          Center(
-            child: Text(
+            const SizedBox(height: 4),
+            Text(
               'NIM: ${student['nim']}',
               style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
             ),
-          ),
-          const SizedBox(height: 28),
-          _ProfileItem(
-            icon: Icons.school_outlined,
-            label: 'Program Studi',
-            value: student['program'] as String,
-          ),
-          _ProfileItem(
-            icon: Icons.location_city_outlined,
-            label: 'Universitas',
-            value: student['university'] as String,
-          ),
-          _ProfileItem(
-            icon: Icons.calendar_today_outlined,
-            label: 'Semester',
-            value: '${student['semester']}',
-          ),
-          _ProfileItem(
-            icon: Icons.favorite_outline,
-            label: 'Course Difavoritkan',
-            value: '$favoriteCount course',
-          ),
-        ],
+            const SizedBox(height: 28),
+            _ProfileItem(
+              icon: Icons.school_outlined,
+              label: 'Program Studi',
+              value: student['program'] as String,
+            ),
+            _ProfileItem(
+              icon: Icons.location_city_outlined,
+              label: 'Universitas',
+              value: student['university'] as String,
+            ),
+            _ProfileItem(
+              icon: Icons.calendar_today_outlined,
+              label: 'Semester',
+              value: '${student['semester']}',
+            ),
+            _ProfileItem(
+              icon: Icons.favorite_outline,
+              label: 'Course Difavoritkan',
+              value: '$favoriteCount course',
+            ),
+            const SizedBox(height: 28),
+            const Divider(),
+            const SizedBox(height: 12),
+
+            // ============ FORM FEEDBACK ============
+            FeedbackForm(student: student),
+          ],
+        ),
       ),
     );
   }
@@ -635,6 +628,168 @@ class _ProfileItem extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ============================================================
+// FEEDBACK FORM — Form + TextFormField + Validasi
+// ============================================================
+class FeedbackForm extends StatefulWidget {
+  final Map<String, dynamic> student;
+
+  const FeedbackForm({super.key, required this.student});
+
+  @override
+  State<FeedbackForm> createState() => _FeedbackFormState();
+}
+
+class _FeedbackFormState extends State<FeedbackForm> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _nameController;
+  late final TextEditingController _nimController;
+  final _commentController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Pre-fill nama & NIM dari data JSON
+    _nameController =
+        TextEditingController(text: widget.student['name'] as String);
+    _nimController =
+        TextEditingController(text: widget.student['nim'] as String);
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _nimController.dispose();
+    _commentController.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    // 1) Validasi form
+    if (!_formKey.currentState!.validate()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Periksa kembali form sebelum mengirim.'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // 2) Kalau valid → tampilkan SnackBar sukses
+    FocusScope.of(context).unfocus();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Feedback dari ${_nameController.text} (${_nimController.text}) terkirim!',
+        ),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+
+    // 3) Reset hanya field komentar
+    _commentController.clear();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Form(
+      key: _formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Form Feedback',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Sampaikan masukan Anda tentang aplikasi Course Explorer.',
+            style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
+          ),
+          const SizedBox(height: 16),
+
+          // -------- Nama --------
+          TextFormField(
+            controller: _nameController,
+            decoration: const InputDecoration(
+              labelText: 'Nama',
+              prefixIcon: Icon(Icons.person_outline),
+              border: OutlineInputBorder(),
+            ),
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return 'Nama wajib diisi';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 14),
+
+          // -------- NIM --------
+          TextFormField(
+            controller: _nimController,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: 'NIM',
+              prefixIcon: Icon(Icons.badge_outlined),
+              border: OutlineInputBorder(),
+            ),
+            validator: (value) {
+              final v = value?.trim() ?? '';
+              if (v.isEmpty) {
+                return 'NIM wajib diisi';
+              }
+              if (v.length < 6) {
+                return 'NIM minimal 6 karakter';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 14),
+
+          // -------- Komentar --------
+          TextFormField(
+            controller: _commentController,
+            minLines: 3,
+            maxLines: 5,
+            decoration: const InputDecoration(
+              labelText: 'Komentar',
+              hintText: 'Tulis minimal 5 karakter...',
+              alignLabelWithHint: true,
+              border: OutlineInputBorder(),
+            ),
+            validator: (value) {
+              final v = value?.trim() ?? '';
+              if (v.isEmpty) {
+                return 'Komentar wajib diisi';
+              }
+              if (v.length < 5) {
+                return 'Komentar minimal 5 karakter';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 20),
+
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: _submit,
+              icon: const Icon(Icons.send),
+              label: const Text('Kirim Feedback'),
             ),
           ),
         ],
