@@ -13,7 +13,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Navigation Bar Demo',
+      title: 'Adaptive Navigation',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
 }
 
 // ============================================================
-// MAIN SHELL — shell dengan NavigationBar
+// MAIN SHELL — adaptive navigation
 // ============================================================
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -36,10 +36,8 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
 
-  // Set kode course yang difavoritkan — dibagi ke CoursesPage
   final Set<String> _favorites = {};
 
-  // Data dari JSON
   Map<String, dynamic>? _student;
   List<dynamic>? _courses;
   bool _loading = true;
@@ -79,7 +77,6 @@ class _MainShellState extends State<MainShell> {
       );
     }
 
-    // Halaman-halaman yang ditampilkan sesuai index
     final pages = [
       _HomeTab(
         student: _student!,
@@ -97,34 +94,95 @@ class _MainShellState extends State<MainShell> {
       ),
     ];
 
-    return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: pages,
-      ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: (index) {
-          setState(() => _currentIndex = index);
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Home',
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final bool isExpanded = constraints.maxWidth >= 840;
+
+        if (isExpanded) {
+          // ============ EXPANDED: NavigationRail ============
+          return Scaffold(
+            body: Row(
+              children: [
+                NavigationRail(
+                  selectedIndex: _currentIndex,
+                  onDestinationSelected: (index) {
+                    setState(() => _currentIndex = index);
+                  },
+                  labelType: NavigationRailLabelType.all,
+                  leading: Padding(
+                    padding: const EdgeInsets.only(top: 12, bottom: 8),
+                    child: CircleAvatar(
+                      backgroundColor: Colors.blue.shade100,
+                      child: Text(
+                        (_student!['name'] as String).substring(0, 1),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1976D2),
+                        ),
+                      ),
+                    ),
+                  ),
+                  destinations: const [
+                    NavigationRailDestination(
+                      icon: Icon(Icons.home_outlined),
+                      selectedIcon: Icon(Icons.home),
+                      label: Text('Home'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.school_outlined),
+                      selectedIcon: Icon(Icons.school),
+                      label: Text('Courses'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.person_outline),
+                      selectedIcon: Icon(Icons.person),
+                      label: Text('Profile'),
+                    ),
+                  ],
+                ),
+                const VerticalDivider(width: 1),
+                Expanded(
+                  child: IndexedStack(
+                    index: _currentIndex,
+                    children: pages,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        // ============ COMPACT / MEDIUM: NavigationBar ============
+        return Scaffold(
+          body: IndexedStack(
+            index: _currentIndex,
+            children: pages,
           ),
-          NavigationDestination(
-            icon: Icon(Icons.school_outlined),
-            selectedIcon: Icon(Icons.school),
-            label: 'Courses',
+          bottomNavigationBar: NavigationBar(
+            selectedIndex: _currentIndex,
+            onDestinationSelected: (index) {
+              setState(() => _currentIndex = index);
+            },
+            destinations: const [
+              NavigationDestination(
+                icon: Icon(Icons.home_outlined),
+                selectedIcon: Icon(Icons.home),
+                label: 'Home',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.school_outlined),
+                selectedIcon: Icon(Icons.school),
+                label: 'Courses',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.person_outline),
+                selectedIcon: Icon(Icons.person),
+                label: 'Profile',
+              ),
+            ],
           ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -150,7 +208,6 @@ class _HomeTab extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Kartu identitas
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(20),
@@ -187,8 +244,6 @@ class _HomeTab extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
-
-          // Ringkasan cepat
           Row(
             children: [
               Expanded(
@@ -210,16 +265,15 @@ class _HomeTab extends StatelessWidget {
               ),
             ],
           ),
-
           const SizedBox(height: 20),
-
           const Text(
             'Selamat datang 👋',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 6),
           const Text(
-            'Gunakan tab di bawah untuk berpindah antara Home, Courses, dan Profile.',
+            'Navigasi akan otomatis berubah: NavigationBar di layar kecil, '
+            'NavigationRail di layar lebar (≥ 840 px).',
             style: TextStyle(fontSize: 14, height: 1.5),
           ),
         ],
@@ -274,7 +328,7 @@ class _SummaryCard extends StatelessWidget {
 }
 
 // ============================================================
-// TAB 2 — COURSES (list + detail + favorite)
+// TAB 2 — COURSES
 // ============================================================
 class _CoursesTab extends StatelessWidget {
   final List<dynamic> courses;
@@ -297,10 +351,13 @@ class _CoursesTab extends StatelessWidget {
     );
 
     if (result == true && context.mounted) {
+      final wasFav = favorites.contains(course['code']);
       onToggleFavorite(course['code'] as String);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('"${course['name']}" ${favorites.contains(course['code']) ? 'dihapus dari' : 'ditambahkan ke'} Favorite'),
+          content: Text(
+            '"${course['name']}" ${wasFav ? 'dihapus dari' : 'ditambahkan ke'} Favorite',
+          ),
           duration: const Duration(seconds: 2),
           behavior: SnackBarBehavior.floating,
         ),
@@ -492,7 +549,6 @@ class _ProfileTab extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 28),
-
           _ProfileItem(
             icon: Icons.school_outlined,
             label: 'Program Studi',
@@ -573,7 +629,7 @@ class _ProfileItem extends StatelessWidget {
 }
 
 // ============================================================
-// COURSE DETAIL PAGE (dari Tahap 9)
+// COURSE DETAIL PAGE
 // ============================================================
 class CourseDetailPage extends StatelessWidget {
   final Map<String, dynamic> course;
@@ -653,7 +709,6 @@ class CourseDetailPage extends StatelessWidget {
                 ],
               ),
             ),
-
             const SizedBox(height: 24),
             const Text(
               'Deskripsi',
@@ -665,7 +720,6 @@ class CourseDetailPage extends StatelessWidget {
               'berbobot ${course['credits']} SKS. Status saat ini: $status.',
               style: const TextStyle(fontSize: 15, height: 1.5),
             ),
-
             const SizedBox(height: 28),
             const Divider(),
             const SizedBox(height: 12),
@@ -678,7 +732,6 @@ class CourseDetailPage extends StatelessWidget {
             const Text('NIM: 2415051059'),
             const Text('Pendidikan Teknik Informatika'),
             const Text('Universitas Pendidikan Ganesha'),
-
             const SizedBox(height: 32),
             SizedBox(
               width: double.infinity,
