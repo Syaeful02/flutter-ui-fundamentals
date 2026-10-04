@@ -14,268 +14,229 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'LayoutBuilder Demo',
+      title: 'Expanded Flexible Wrap',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.blue,
         ),
         useMaterial3: true,
       ),
-      home: const LayoutBuilderPage(),
+      home: const ResponsiveLayoutPage(),
     );
   }
 }
 
-class LayoutBuilderPage extends StatelessWidget {
-  const LayoutBuilderPage({super.key});
+class ResponsiveLayoutPage extends StatelessWidget {
+  const ResponsiveLayoutPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('LayoutBuilder'),
+        title: const Text('Expanded, Flexible & Wrap'),
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final double width = constraints.maxWidth;
-
-          if (width < 600) {
-            return const CompactLayout();
-          } else if (width < 840) {
-            return const MediumLayout();
-          } else {
-            return const ExpandedLayout();
-          }
-        },
-      ),
-    );
-  }
-}
-
-class CompactLayout extends StatelessWidget {
-  const CompactLayout({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'COMPACT',
-            style: TextStyle(
-              fontSize: 26,
-              fontWeight: FontWeight.bold,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Tahap 4: Responsive Layout',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Lebar layar kurang dari 600 px.',
-          ),
-          const SizedBox(height: 20),
-          IdentityCard(
-            backgroundColor: Colors.blue.shade100,
-          ),
-          const SizedBox(height: 20),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              color: Colors.blue.shade50,
+
+            const SizedBox(height: 8),
+
+            const Text(
+              '$studentId - $studentName',
+              style: TextStyle(
+                fontSize: 16,
+              ),
             ),
-            child: const Column(
+
+            const SizedBox(height: 28),
+
+            const Text(
+              '1. Expanded',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            Row(
               children: [
-                Icon(
-                  Icons.phone_android,
-                  size: 50,
+                Expanded(
+                  flex: 2,
+                  child: Container(
+                    height: 100,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade200,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Text(
+                      'Expanded 2',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
                 ),
-                SizedBox(height: 12),
-                Text(
-                  'Tampilan satu kolom untuk perangkat kecil.',
-                  textAlign: TextAlign.center,
+
+                const SizedBox(width: 12),
+
+                Expanded(
+                  flex: 1,
+                  child: Container(
+                    height: 100,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade100,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Text(
+                      'Expanded 1',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
-class MediumLayout extends StatelessWidget {
-  const MediumLayout({super.key});
+            const SizedBox(height: 28),
 
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'MEDIUM',
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
+            const Text(
+              '2. Flexible',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Lebar layar 600–839 px.',
-          ),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              Expanded(
-                child: IdentityCard(
-                  backgroundColor: Colors.green.shade100,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Container(
-                  height: 180,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    color: Colors.green.shade50,
-                  ),
-                  child: const Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.tablet_android,
-                        size: 50,
-                      ),
-                      SizedBox(height: 12),
-                      Text(
-                        'Layout dua kolom untuk layar medium.',
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
+
+            const SizedBox(height: 12),
+
+            Row(
+              children: [
+                Flexible(
+                  flex: 2,
+                  child: Container(
+                    height: 100,
+                    padding: const EdgeInsets.all(16),
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: Colors.green.shade200,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Text(
+                      'Flexible 2 - Ukuran dapat menyesuaikan ruang',
+                      textAlign: TextAlign.center,
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
 
-class ExpandedLayout extends StatelessWidget {
-  const ExpandedLayout({super.key});
+                const SizedBox(width: 12),
 
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'EXPANDED',
-            style: TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
+                Flexible(
+                  flex: 1,
+                  child: Container(
+                    height: 100,
+                    padding: const EdgeInsets.all(16),
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: Colors.green.shade100,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Text(
+                      'Flexible 1',
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Lebar layar 840 px atau lebih.',
-          ),
-          const SizedBox(height: 24),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                flex: 2,
-                child: IdentityCard(
-                  backgroundColor: Colors.orange.shade100,
-                ),
+
+            const SizedBox(height: 28),
+
+            const Text(
+              '3. Wrap',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
               ),
-              const SizedBox(width: 20),
-              Expanded(
-                flex: 1,
-                child: Container(
-                  height: 220,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    color: Colors.orange.shade50,
-                  ),
-                  child: const Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.desktop_windows,
-                        size: 55,
-                      ),
-                      SizedBox(height: 12),
-                      Text(
-                        'Layout lebih luas untuk layar besar.',
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
+            ),
+
+            const SizedBox(height: 12),
+
+            const Text(
+              'Daftar kemampuan yang dapat berpindah ke baris berikutnya '
+              'ketika ruang tidak mencukupi.',
+            ),
+
+            const SizedBox(height: 16),
+
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: const [
+                SkillChip(
+                  icon: Icons.code,
+                  label: 'Flutter',
                 ),
-              ),
-            ],
-          ),
-        ],
+                SkillChip(
+                  icon: Icons.language,
+                  label: 'Web Programming',
+                ),
+                SkillChip(
+                  icon: Icons.network_check,
+                  label: 'Computer Networking',
+                ),
+                SkillChip(
+                  icon: Icons.storage,
+                  label: 'Database',
+                ),
+                SkillChip(
+                  icon: Icons.phone_android,
+                  label: 'Mobile Development',
+                ),
+                SkillChip(
+                  icon: Icons.design_services,
+                  label: 'UI Design',
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-class IdentityCard extends StatelessWidget {
-  final Color backgroundColor;
+class SkillChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
 
-  const IdentityCard({
+  const SkillChip({
     super.key,
-    required this.backgroundColor,
+    required this.icon,
+    required this.label,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(16),
+    return Chip(
+      avatar: Icon(
+        icon,
+        size: 18,
       ),
-      child: const Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            studentId,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          SizedBox(height: 8),
-          Text(
-            studentName,
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          SizedBox(height: 8),
-          Text(
-            'Pendidikan Teknik Informatika',
-          ),
-          SizedBox(height: 4),
-          Text(
-            'Universitas Pendidikan Ganesha',
-          ),
-        ],
-      ),
+      label: Text(label),
     );
   }
 }
