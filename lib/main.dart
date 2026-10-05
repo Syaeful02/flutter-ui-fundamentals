@@ -2,6 +2,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
+const String studentName = 'Syaeful Darmawan';
+const String studentId = '2415051059';
+const String profileImagePath = 'assets/images/profile_syaeful.jpg';
+
 void main() {
   runApp(const MyApp());
 }
@@ -13,7 +17,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Feedback Demo',
+      title: 'Course Explorer',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
@@ -24,7 +28,7 @@ class MyApp extends StatelessWidget {
 }
 
 // ============================================================
-// MAIN SHELL — adaptive navigation
+// MAIN SHELL
 // ============================================================
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -36,6 +40,7 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
   final Set<String> _favorites = {};
+  Map<String, dynamic>? _selectedCourse;
 
   Map<String, dynamic>? _student;
   List<dynamic>? _courses;
@@ -91,19 +96,34 @@ class _MainShellState extends State<MainShell> {
       );
     }
 
-    final pages = [
-      _HomeTab(student: _student!, courses: _courses!, favorites: _favorites),
-      _CoursesTab(
-        courses: _courses!,
-        favorites: _favorites,
-        onToggleFavorite: _toggleFavorite,
-      ),
-      _ProfileTab(student: _student!, favoriteCount: _favorites.length),
-    ];
-
     return LayoutBuilder(
       builder: (context, constraints) {
-        final isExpanded = constraints.maxWidth >= 840;
+        final bool isExpanded = constraints.maxWidth >= 840;
+
+        final pages = [
+          _HomeTab(
+            student: _student!,
+            courses: _courses!,
+            favorites: _favorites,
+          ),
+          isExpanded
+              ? _CoursesMasterDetail(
+                  courses: _courses!,
+                  favorites: _favorites,
+                  selectedCourse: _selectedCourse,
+                  onSelect: (c) => setState(() => _selectedCourse = c),
+                  onToggleFavorite: _toggleFavorite,
+                )
+              : _CoursesTab(
+                  courses: _courses!,
+                  favorites: _favorites,
+                  onToggleFavorite: _toggleFavorite,
+                ),
+          _ProfileTab(
+            student: _student!,
+            favoriteCount: _favorites.length,
+          ),
+        ];
 
         if (isExpanded) {
           return Scaffold(
@@ -117,14 +137,9 @@ class _MainShellState extends State<MainShell> {
                   leading: Padding(
                     padding: const EdgeInsets.only(top: 12, bottom: 8),
                     child: CircleAvatar(
+                      radius: 22,
                       backgroundColor: Colors.blue.shade100,
-                      child: Text(
-                        (_student!['name'] as String).substring(0, 1),
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1976D2),
-                        ),
-                      ),
+                      backgroundImage: const AssetImage(profileImagePath),
                     ),
                   ),
                   destinations: const [
@@ -147,7 +162,10 @@ class _MainShellState extends State<MainShell> {
                 ),
                 const VerticalDivider(width: 1),
                 Expanded(
-                  child: IndexedStack(index: _currentIndex, children: pages),
+                  child: IndexedStack(
+                    index: _currentIndex,
+                    children: pages,
+                  ),
                 ),
               ],
             ),
@@ -200,10 +218,11 @@ class _HomeTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Home')),
+      appBar: AppBar(title: const Text('Course Explorer')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          // Header dengan foto profil
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(20),
@@ -215,31 +234,44 @@ class _HomeTab extends StatelessWidget {
               ),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
               children: [
-                Text(
-                  student['name'] as String,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                CircleAvatar(
+                  radius: 32,
+                  backgroundColor: Colors.white,
+                  backgroundImage: const AssetImage(profileImagePath),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        student['name'] as String,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'NIM: ${student['nim']}',
+                        style: const TextStyle(color: Colors.white70),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        student['program'] as String,
+                        style: const TextStyle(color: Colors.white70),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'NIM: ${student['nim']}',
-                  style: const TextStyle(color: Colors.white70),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  student['program'] as String,
-                  style: const TextStyle(color: Colors.white70),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 20),
+
           Row(
             children: [
               Expanded(
@@ -261,16 +293,32 @@ class _HomeTab extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 20),
-          const Text(
-            'Tahap 14 — Feedback',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          const SizedBox(height: 24),
+
+          TextField(
+            decoration: InputDecoration(
+              hintText: 'Search courses...',
+              prefixIcon: const Icon(Icons.search),
+              filled: true,
+              fillColor: Colors.grey.shade100,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: const EdgeInsets.symmetric(vertical: 4),
+            ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 16),
+
           const Text(
-            'Coba kirim feedback di tab Profile untuk melihat Dialog → Loading → SnackBar.',
-            style: TextStyle(fontSize: 14, height: 1.5),
+            'Aktif / Terbaru',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
+          const SizedBox(height: 8),
+          ...courses.take(3).map((c) {
+            final m = c as Map<String, dynamic>;
+            return _MiniCourseTile(course: m);
+          }),
         ],
       ),
     );
@@ -319,8 +367,62 @@ class _SummaryCard extends StatelessWidget {
   }
 }
 
+class _MiniCourseTile extends StatelessWidget {
+  final Map<String, dynamic> course;
+
+  const _MiniCourseTile({required this.course});
+
+  MaterialColor _statusColor(String status) {
+    switch (status) {
+      case 'Selesai':
+        return Colors.green;
+      case 'Sedang Dipelajari':
+        return Colors.orange;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final color = _statusColor(course['status'] as String);
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      elevation: 1,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: ListTile(
+        title: Text(
+          course['name'] as String,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+        ),
+        subtitle: Text(
+          course['code'] as String,
+          style: const TextStyle(fontSize: 12),
+        ),
+        trailing: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: color.shade100,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Text(
+            course['status'] as String,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: color.shade700,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 // ============================================================
-// TAB 2 — COURSES
+// TAB 2a — COURSES (compact)
 // ============================================================
 class _CoursesTab extends StatelessWidget {
   final List<dynamic> courses;
@@ -348,8 +450,7 @@ class _CoursesTab extends StatelessWidget {
         content: Text(
           'Kode: ${course['code']}\n'
           'SKS: ${course['credits']}\n'
-          'Status: ${course['status']}\n\n'
-          'Tekan lama untuk melihat info singkat seperti ini.',
+          'Status: ${course['status']}',
         ),
         actions: [
           TextButton(
@@ -368,7 +469,6 @@ class _CoursesTab extends StatelessWidget {
     );
   }
 
-  // Dialog konfirmasi untuk menghapus favorite
   Future<void> _confirmRemoveFavorite(
       BuildContext context, Map<String, dynamic> course) async {
     final confirmed = await showDialog<bool>(
@@ -376,7 +476,7 @@ class _CoursesTab extends StatelessWidget {
       builder: (_) => AlertDialog(
         title: const Text('Hapus dari Favorite?'),
         content: Text(
-          '"${course['name']}" akan dihapus dari daftar favorite. Lanjutkan?',
+          '"${course['name']}" akan dihapus dari daftar favorite.',
         ),
         actions: [
           TextButton(
@@ -391,7 +491,6 @@ class _CoursesTab extends StatelessWidget {
         ],
       ),
     );
-
     if (confirmed == true && context.mounted) {
       onToggleFavorite(course['code'] as String);
     }
@@ -412,8 +511,6 @@ class _CoursesTab extends StatelessWidget {
             isFavorite: isFav,
             onTap: () => _openDetail(context, c),
             onToggleFavorite: () {
-              // Kalau sudah favorite → minta konfirmasi hapus
-              // Kalau belum → langsung tambahkan
               if (isFav) {
                 _confirmRemoveFavorite(context, c);
               } else {
@@ -428,9 +525,192 @@ class _CoursesTab extends StatelessWidget {
   }
 }
 
+// ============================================================
+// TAB 2b — COURSES (expanded: master-detail)
+// ============================================================
+class _CoursesMasterDetail extends StatelessWidget {
+  final List<dynamic> courses;
+  final Set<String> favorites;
+  final Map<String, dynamic>? selectedCourse;
+  final void Function(Map<String, dynamic>) onSelect;
+  final void Function(String code, {bool showFeedback}) onToggleFavorite;
+
+  const _CoursesMasterDetail({
+    required this.courses,
+    required this.favorites,
+    required this.selectedCourse,
+    required this.onSelect,
+    required this.onToggleFavorite,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Courses (Master-Detail)')),
+      body: Row(
+        children: [
+          SizedBox(
+            width: 340,
+            child: ListView.builder(
+              padding: const EdgeInsets.all(12),
+              itemCount: courses.length,
+              itemBuilder: (context, i) {
+                final c = courses[i] as Map<String, dynamic>;
+                final isFav = favorites.contains(c['code']);
+                final isSelected = selectedCourse?['code'] == c['code'];
+                return _CourseCard(
+                  course: c,
+                  isFavorite: isFav,
+                  isSelected: isSelected,
+                  onTap: () => onSelect(c),
+                  onToggleFavorite: () =>
+                      onToggleFavorite(c['code'] as String),
+                  onLongPress: () {},
+                );
+              },
+            ),
+          ),
+          const VerticalDivider(width: 1),
+          Expanded(
+            child: selectedCourse == null
+                ? const _EmptyDetailPlaceholder()
+                : _DetailPanel(course: selectedCourse!),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EmptyDetailPlaceholder extends StatelessWidget {
+  const _EmptyDetailPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.touch_app_outlined,
+              size: 72, color: Colors.grey.shade400),
+          const SizedBox(height: 16),
+          Text(
+            'Pilih salah satu course\ndi panel kiri',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 15, color: Colors.grey.shade600),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DetailPanel extends StatelessWidget {
+  final Map<String, dynamic> course;
+
+  const _DetailPanel({required this.course});
+
+  MaterialColor _statusColor(String status) {
+    switch (status) {
+      case 'Selesai':
+        return Colors.green;
+      case 'Sedang Dipelajari':
+        return Colors.orange;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final status = course['status'] as String;
+    final color = _statusColor(status);
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(22),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  color.withValues(alpha: 0.85),
+                  color.withValues(alpha: 0.55),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  course['name'] as String,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  course['code'] as String,
+                  style: const TextStyle(color: Colors.white70),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    _ChipPill(
+                      icon: Icons.school_outlined,
+                      text: '${course['credits']} SKS',
+                    ),
+                    const SizedBox(width: 8),
+                    _ChipPill(icon: Icons.info_outline, text: status),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          const Text(
+            'Deskripsi',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Mata kuliah ${course['name']} dengan kode ${course['code']} '
+            'berbobot ${course['credits']} SKS. Status saat ini: $status.',
+            style: const TextStyle(fontSize: 15, height: 1.5),
+          ),
+          const SizedBox(height: 28),
+          const Divider(),
+          const SizedBox(height: 12),
+          const Text(
+            'Informasi Mahasiswa',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          const Text('Syaeful Darmawan'),
+          const Text('NIM: 2415051059'),
+          const Text('Pendidikan Teknik Informatika'),
+          const Text('Universitas Pendidikan Ganesha'),
+        ],
+      ),
+    );
+  }
+}
+
+// ============================================================
+// COURSE CARD
+// ============================================================
 class _CourseCard extends StatelessWidget {
   final Map<String, dynamic> course;
   final bool isFavorite;
+  final bool isSelected;
   final VoidCallback onTap;
   final VoidCallback onToggleFavorite;
   final VoidCallback onLongPress;
@@ -438,6 +718,7 @@ class _CourseCard extends StatelessWidget {
   const _CourseCard({
     required this.course,
     required this.isFavorite,
+    this.isSelected = false,
     required this.onTap,
     required this.onToggleFavorite,
     required this.onLongPress,
@@ -461,9 +742,13 @@ class _CourseCard extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      elevation: 1.5,
+      elevation: isSelected ? 3 : 1.5,
+      color: isSelected ? Colors.blue.shade50 : Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
+        side: isSelected
+            ? BorderSide(color: Colors.blue.shade300, width: 1.5)
+            : BorderSide.none,
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -544,7 +829,7 @@ class _CourseCard extends StatelessWidget {
 }
 
 // ============================================================
-// TAB 3 — PROFILE + FEEDBACK FORM
+// TAB 3 — PROFILE
 // ============================================================
 class _ProfileTab extends StatelessWidget {
   final Map<String, dynamic> student;
@@ -563,17 +848,11 @@ class _ProfileTab extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
+            // FOTO PROFIL
             CircleAvatar(
-              radius: 46,
+              radius: 56,
               backgroundColor: Colors.blue.shade100,
-              child: Text(
-                (student['name'] as String).substring(0, 1),
-                style: const TextStyle(
-                  fontSize: 36,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1976D2),
-                ),
-              ),
+              backgroundImage: const AssetImage(profileImagePath),
             ),
             const SizedBox(height: 16),
             Text(
@@ -671,7 +950,7 @@ class _ProfileItem extends StatelessWidget {
 }
 
 // ============================================================
-// FEEDBACK FORM — Form + Validasi + Dialog + Loading + SnackBar
+// FEEDBACK FORM
 // ============================================================
 class FeedbackForm extends StatefulWidget {
   final Map<String, dynamic> student;
@@ -687,7 +966,6 @@ class _FeedbackFormState extends State<FeedbackForm> {
   late final TextEditingController _nameController;
   late final TextEditingController _nimController;
   final _commentController = TextEditingController();
-
   bool _isSubmitting = false;
 
   @override
@@ -708,7 +986,6 @@ class _FeedbackFormState extends State<FeedbackForm> {
   }
 
   Future<void> _submit() async {
-    // 1) Validasi form
     if (!_formKey.currentState!.validate()) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -722,7 +999,6 @@ class _FeedbackFormState extends State<FeedbackForm> {
 
     FocusScope.of(context).unfocus();
 
-    // 2) Dialog konfirmasi sebelum aksi penting
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
@@ -745,13 +1021,11 @@ class _FeedbackFormState extends State<FeedbackForm> {
 
     if (confirmed != true || !mounted) return;
 
-    // 3) Tampilkan loading singkat
     setState(() => _isSubmitting = true);
     await Future.delayed(const Duration(milliseconds: 1500));
     if (!mounted) return;
     setState(() => _isSubmitting = false);
 
-    // 4) SnackBar sukses
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
@@ -784,7 +1058,6 @@ class _FeedbackFormState extends State<FeedbackForm> {
           ),
           const SizedBox(height: 16),
 
-          // -------- Nama --------
           TextFormField(
             controller: _nameController,
             decoration: const InputDecoration(
@@ -792,16 +1065,11 @@ class _FeedbackFormState extends State<FeedbackForm> {
               prefixIcon: Icon(Icons.person_outline),
               border: OutlineInputBorder(),
             ),
-            validator: (value) {
-              if (value == null || value.trim().isEmpty) {
-                return 'Nama wajib diisi';
-              }
-              return null;
-            },
+            validator: (v) =>
+                (v == null || v.trim().isEmpty) ? 'Nama wajib diisi' : null,
           ),
           const SizedBox(height: 14),
 
-          // -------- NIM --------
           TextFormField(
             controller: _nimController,
             keyboardType: TextInputType.number,
@@ -810,16 +1078,15 @@ class _FeedbackFormState extends State<FeedbackForm> {
               prefixIcon: Icon(Icons.badge_outlined),
               border: OutlineInputBorder(),
             ),
-            validator: (value) {
-              final v = value?.trim() ?? '';
-              if (v.isEmpty) return 'NIM wajib diisi';
-              if (v.length < 6) return 'NIM minimal 6 karakter';
+            validator: (v) {
+              final s = v?.trim() ?? '';
+              if (s.isEmpty) return 'NIM wajib diisi';
+              if (s.length < 6) return 'NIM minimal 6 karakter';
               return null;
             },
           ),
           const SizedBox(height: 14),
 
-          // -------- Komentar --------
           TextFormField(
             controller: _commentController,
             minLines: 3,
@@ -830,10 +1097,10 @@ class _FeedbackFormState extends State<FeedbackForm> {
               alignLabelWithHint: true,
               border: OutlineInputBorder(),
             ),
-            validator: (value) {
-              final v = value?.trim() ?? '';
-              if (v.isEmpty) return 'Komentar wajib diisi';
-              if (v.length < 5) return 'Komentar minimal 5 karakter';
+            validator: (v) {
+              final s = v?.trim() ?? '';
+              if (s.isEmpty) return 'Komentar wajib diisi';
+              if (s.length < 5) return 'Komentar minimal 5 karakter';
               return null;
             },
           ),
@@ -853,9 +1120,7 @@ class _FeedbackFormState extends State<FeedbackForm> {
                       ),
                     )
                   : const Icon(Icons.send),
-              label: Text(
-                _isSubmitting ? 'Mengirim...' : 'Kirim Feedback',
-              ),
+              label: Text(_isSubmitting ? 'Mengirim...' : 'Kirim Feedback'),
             ),
           ),
         ],
@@ -865,7 +1130,7 @@ class _FeedbackFormState extends State<FeedbackForm> {
 }
 
 // ============================================================
-// COURSE DETAIL PAGE
+// COURSE DETAIL PAGE (compact)
 // ============================================================
 class CourseDetailPage extends StatelessWidget {
   final Map<String, dynamic> course;
@@ -923,10 +1188,7 @@ class CourseDetailPage extends StatelessWidget {
                   const SizedBox(height: 6),
                   Text(
                     course['code'] as String,
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 14,
-                    ),
+                    style: const TextStyle(color: Colors.white70),
                   ),
                   const SizedBox(height: 16),
                   Row(
