@@ -1,10 +1,12 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
+// Atas: tambahkan import
 
 const String studentName = 'Syaeful Darmawan';
 const String studentId = '2415051059';
 const String profileImagePath = 'assets/images/profile_syaeful.jpg';
+
 
 void main() {
   runApp(const MyApp());
