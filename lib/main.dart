@@ -13,7 +13,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Form Validation',
+      title: 'Feedback Demo',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
@@ -263,12 +263,12 @@ class _HomeTab extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           const Text(
-            'Selamat datang 👋',
+            'Tahap 14 — Feedback',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 6),
           const Text(
-            'Buka tab Profile untuk mencoba form feedback dengan validasi.',
+            'Coba kirim feedback di tab Profile untuk melihat Dialog → Loading → SnackBar.',
             style: TextStyle(fontSize: 14, height: 1.5),
           ),
         ],
@@ -349,8 +349,7 @@ class _CoursesTab extends StatelessWidget {
           'Kode: ${course['code']}\n'
           'SKS: ${course['credits']}\n'
           'Status: ${course['status']}\n\n'
-          'Tekan lama untuk melihat info singkat seperti ini. '
-          'Tap card untuk membuka detail lengkap.',
+          'Tekan lama untuk melihat info singkat seperti ini.',
         ),
         actions: [
           TextButton(
@@ -369,6 +368,35 @@ class _CoursesTab extends StatelessWidget {
     );
   }
 
+  // Dialog konfirmasi untuk menghapus favorite
+  Future<void> _confirmRemoveFavorite(
+      BuildContext context, Map<String, dynamic> course) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Hapus dari Favorite?'),
+        content: Text(
+          '"${course['name']}" akan dihapus dari daftar favorite. Lanjutkan?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      onToggleFavorite(course['code'] as String);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -383,7 +411,15 @@ class _CoursesTab extends StatelessWidget {
             course: c,
             isFavorite: isFav,
             onTap: () => _openDetail(context, c),
-            onToggleFavorite: () => onToggleFavorite(c['code'] as String),
+            onToggleFavorite: () {
+              // Kalau sudah favorite → minta konfirmasi hapus
+              // Kalau belum → langsung tambahkan
+              if (isFav) {
+                _confirmRemoveFavorite(context, c);
+              } else {
+                onToggleFavorite(c['code'] as String);
+              }
+            },
             onLongPress: () => _showQuickInfo(context, c),
           );
         },
@@ -576,8 +612,6 @@ class _ProfileTab extends StatelessWidget {
             const SizedBox(height: 28),
             const Divider(),
             const SizedBox(height: 12),
-
-            // ============ FORM FEEDBACK ============
             FeedbackForm(student: student),
           ],
         ),
@@ -637,7 +671,7 @@ class _ProfileItem extends StatelessWidget {
 }
 
 // ============================================================
-// FEEDBACK FORM — Form + TextFormField + Validasi
+// FEEDBACK FORM — Form + Validasi + Dialog + Loading + SnackBar
 // ============================================================
 class FeedbackForm extends StatefulWidget {
   final Map<String, dynamic> student;
@@ -654,10 +688,11 @@ class _FeedbackFormState extends State<FeedbackForm> {
   late final TextEditingController _nimController;
   final _commentController = TextEditingController();
 
+  bool _isSubmitting = false;
+
   @override
   void initState() {
     super.initState();
-    // Pre-fill nama & NIM dari data JSON
     _nameController =
         TextEditingController(text: widget.student['name'] as String);
     _nimController =
@@ -672,7 +707,7 @@ class _FeedbackFormState extends State<FeedbackForm> {
     super.dispose();
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     // 1) Validasi form
     if (!_formKey.currentState!.validate()) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -685,18 +720,49 @@ class _FeedbackFormState extends State<FeedbackForm> {
       return;
     }
 
-    // 2) Kalau valid → tampilkan SnackBar sukses
     FocusScope.of(context).unfocus();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
+
+    // 2) Dialog konfirmasi sebelum aksi penting
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Kirim Feedback?'),
         content: Text(
-          'Feedback dari ${_nameController.text} (${_nimController.text}) terkirim!',
+          'Feedback dari ${_nameController.text} akan dikirim. Lanjutkan?',
         ),
-        behavior: SnackBarBehavior.floating,
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Kirim'),
+          ),
+        ],
       ),
     );
 
-    // 3) Reset hanya field komentar
+    if (confirmed != true || !mounted) return;
+
+    // 3) Tampilkan loading singkat
+    setState(() => _isSubmitting = true);
+    await Future.delayed(const Duration(milliseconds: 1500));
+    if (!mounted) return;
+    setState(() => _isSubmitting = false);
+
+    // 4) SnackBar sukses
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Feedback dari ${_nameController.text} '
+          '(${_nimController.text}) berhasil dikirim!',
+        ),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.green.shade700,
+      ),
+    );
+
     _commentController.clear();
   }
 
@@ -709,10 +775,7 @@ class _FeedbackFormState extends State<FeedbackForm> {
         children: [
           const Text(
             'Form Feedback',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 6),
           Text(
@@ -749,12 +812,8 @@ class _FeedbackFormState extends State<FeedbackForm> {
             ),
             validator: (value) {
               final v = value?.trim() ?? '';
-              if (v.isEmpty) {
-                return 'NIM wajib diisi';
-              }
-              if (v.length < 6) {
-                return 'NIM minimal 6 karakter';
-              }
+              if (v.isEmpty) return 'NIM wajib diisi';
+              if (v.length < 6) return 'NIM minimal 6 karakter';
               return null;
             },
           ),
@@ -773,12 +832,8 @@ class _FeedbackFormState extends State<FeedbackForm> {
             ),
             validator: (value) {
               final v = value?.trim() ?? '';
-              if (v.isEmpty) {
-                return 'Komentar wajib diisi';
-              }
-              if (v.length < 5) {
-                return 'Komentar minimal 5 karakter';
-              }
+              if (v.isEmpty) return 'Komentar wajib diisi';
+              if (v.length < 5) return 'Komentar minimal 5 karakter';
               return null;
             },
           ),
@@ -787,9 +842,20 @@ class _FeedbackFormState extends State<FeedbackForm> {
           SizedBox(
             width: double.infinity,
             child: FilledButton.icon(
-              onPressed: _submit,
-              icon: const Icon(Icons.send),
-              label: const Text('Kirim Feedback'),
+              onPressed: _isSubmitting ? null : _submit,
+              icon: _isSubmitting
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Icon(Icons.send),
+              label: Text(
+                _isSubmitting ? 'Mengirim...' : 'Kirim Feedback',
+              ),
             ),
           ),
         ],
@@ -870,10 +936,7 @@ class CourseDetailPage extends StatelessWidget {
                         text: '${course['credits']} SKS',
                       ),
                       const SizedBox(width: 8),
-                      _ChipPill(
-                        icon: Icons.info_outline,
-                        text: status,
-                      ),
+                      _ChipPill(icon: Icons.info_outline, text: status),
                     ],
                   ),
                 ],
