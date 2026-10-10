@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'counter_demo.dart';
 // Atas: tambahkan import
 
 const String studentName = 'Syaeful Darmawan';
@@ -307,6 +308,9 @@ class _HomeTabState extends State<_HomeTab> {
             ),
           ),
 
+          const SizedBox(height: 20),
+
+          const CounterDemo(),
           const SizedBox(height: 20),
 
           // 🟢 Bagian yang di-toggle oleh local state
