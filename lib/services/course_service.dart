@@ -6,9 +6,6 @@ import 'package:flutter/services.dart' show rootBundle;
 import '../models/course.dart';
 
 class CourseService {
-  /// Membaca file JSON asset dan mengembalikan daftar Course.
-  /// Di masa depan, method ini bisa diganti untuk memanggil API
-  /// tanpa mengubah UI / Provider.
   Future<List<Course>> loadCourses() async {
     final raw = await rootBundle.loadString('assets/data/student_data.json');
     final data = json.decode(raw) as Map<String, dynamic>;
