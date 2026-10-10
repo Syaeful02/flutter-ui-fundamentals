@@ -1,13 +1,16 @@
+// 2415051059 - Syaeful Darmawan
+// Course Explorer v2 — Tahap 5: ChangeNotifier dan notifyListeners()
+
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
+
+import 'course_state.dart';
 import 'counter_demo.dart';
-// Atas: tambahkan import
 
 const String studentName = 'Syaeful Darmawan';
 const String studentId = '2415051059';
 const String profileImagePath = 'assets/images/profile_syaeful.jpg';
-
 
 void main() {
   runApp(const MyApp());
@@ -20,7 +23,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Course Explorer',
+      title: 'Course Explorer v2',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
@@ -42,7 +45,10 @@ class MainShell extends StatefulWidget {
 
 class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
-  final Set<String> _favorites = {};
+
+  // 🟢 State favorites dikelola oleh ChangeNotifier terpisah
+  final CourseState _courseState = CourseState();
+
   Map<String, dynamic>? _selectedCourse;
 
   Map<String, dynamic>? _student;
@@ -53,6 +59,12 @@ class _MainShellState extends State<MainShell> {
   void initState() {
     super.initState();
     _loadData();
+  }
+
+  @override
+  void dispose() {
+    _courseState.dispose();
+    super.dispose();
   }
 
   Future<void> _loadData() async {
@@ -66,14 +78,10 @@ class _MainShellState extends State<MainShell> {
   }
 
   void _toggleFavorite(String code, {bool showFeedback = true}) {
-    final wasFav = _favorites.contains(code);
-    setState(() {
-      if (wasFav) {
-        _favorites.remove(code);
-      } else {
-        _favorites.add(code);
-      }
-    });
+    final wasFav = _courseState.isFavorite(code);
+
+    // 🟢 Cukup panggil method — notifyListeners() akan memicu rebuild
+    _courseState.toggleFavorite(code);
 
     if (showFeedback) {
       final course = _courses!.firstWhere(
@@ -99,117 +107,122 @@ class _MainShellState extends State<MainShell> {
       );
     }
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final bool isExpanded = constraints.maxWidth >= 840;
+    // 🟢 ListenableBuilder mendengar perubahan CourseState
+    return ListenableBuilder(
+      listenable: _courseState,
+      builder: (context, _) {
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final bool isExpanded = constraints.maxWidth >= 840;
 
-        final pages = [
-          _HomeTab(
-            student: _student!,
-            courses: _courses!,
-            favorites: _favorites,
-          ),
-          isExpanded
-              ? _CoursesMasterDetail(
-                  courses: _courses!,
-                  favorites: _favorites,
-                  selectedCourse: _selectedCourse,
-                  onSelect: (c) => setState(() => _selectedCourse = c),
-                  onToggleFavorite: _toggleFavorite,
-                )
-              : _CoursesTab(
-                  courses: _courses!,
-                  favorites: _favorites,
-                  onToggleFavorite: _toggleFavorite,
-                ),
-          _ProfileTab(
-            student: _student!,
-            favoriteCount: _favorites.length,
-            // 🟡 Callback ini harus diteruskan 2 layer ke bawah
-            onClearFavorites: () {
-              setState(() {
-                _favorites.clear();
-              });
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Semua favorite dihapus'),
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-            },
-          ),
-        ];
+            final pages = [
+              _HomeTab(
+                student: _student!,
+                courses: _courses!,
+                favorites: _courseState.favorites,
+              ),
+              isExpanded
+                  ? _CoursesMasterDetail(
+                      courses: _courses!,
+                      favorites: _courseState.favorites,
+                      selectedCourse: _selectedCourse,
+                      onSelect: (c) => setState(() => _selectedCourse = c),
+                      onToggleFavorite: _toggleFavorite,
+                    )
+                  : _CoursesTab(
+                      courses: _courses!,
+                      favorites: _courseState.favorites,
+                      onToggleFavorite: _toggleFavorite,
+                    ),
+              _ProfileTab(
+                student: _student!,
+                favoriteCount: _courseState.favoriteCount,
+                onClearFavorites: () {
+                  _courseState.clearFavorites();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Semua favorite dihapus'),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                },
+              ),
+            ];
 
-        if (isExpanded) {
-          return Scaffold(
-            body: Row(
-              children: [
-                NavigationRail(
-                  selectedIndex: _currentIndex,
-                  onDestinationSelected: (i) =>
-                      setState(() => _currentIndex = i),
-                  labelType: NavigationRailLabelType.all,
-                  leading: Padding(
-                    padding: const EdgeInsets.only(top: 12, bottom: 8),
-                    child: CircleAvatar(
-                      radius: 22,
-                      backgroundColor: Colors.blue.shade100,
-                      backgroundImage: const AssetImage(profileImagePath),
+            if (isExpanded) {
+              return Scaffold(
+                body: Row(
+                  children: [
+                    NavigationRail(
+                      selectedIndex: _currentIndex,
+                      onDestinationSelected: (i) =>
+                          setState(() => _currentIndex = i),
+                      labelType: NavigationRailLabelType.all,
+                      leading: Padding(
+                        padding: const EdgeInsets.only(top: 12, bottom: 8),
+                        child: CircleAvatar(
+                          radius: 22,
+                          backgroundColor: Colors.blue.shade100,
+                          backgroundImage:
+                              const AssetImage(profileImagePath),
+                        ),
+                      ),
+                      destinations: const [
+                        NavigationRailDestination(
+                          icon: Icon(Icons.home_outlined),
+                          selectedIcon: Icon(Icons.home),
+                          label: Text('Home'),
+                        ),
+                        NavigationRailDestination(
+                          icon: Icon(Icons.school_outlined),
+                          selectedIcon: Icon(Icons.school),
+                          label: Text('Courses'),
+                        ),
+                        NavigationRailDestination(
+                          icon: Icon(Icons.person_outline),
+                          selectedIcon: Icon(Icons.person),
+                          label: Text('Profile'),
+                        ),
+                      ],
                     ),
-                  ),
-                  destinations: const [
-                    NavigationRailDestination(
-                      icon: Icon(Icons.home_outlined),
-                      selectedIcon: Icon(Icons.home),
-                      label: Text('Home'),
-                    ),
-                    NavigationRailDestination(
-                      icon: Icon(Icons.school_outlined),
-                      selectedIcon: Icon(Icons.school),
-                      label: Text('Courses'),
-                    ),
-                    NavigationRailDestination(
-                      icon: Icon(Icons.person_outline),
-                      selectedIcon: Icon(Icons.person),
-                      label: Text('Profile'),
+                    const VerticalDivider(width: 1),
+                    Expanded(
+                      child: IndexedStack(
+                        index: _currentIndex,
+                        children: pages,
+                      ),
                     ),
                   ],
                 ),
-                const VerticalDivider(width: 1),
-                Expanded(
-                  child: IndexedStack(
-                    index: _currentIndex,
-                    children: pages,
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
+              );
+            }
 
-        return Scaffold(
-          body: IndexedStack(index: _currentIndex, children: pages),
-          bottomNavigationBar: NavigationBar(
-            selectedIndex: _currentIndex,
-            onDestinationSelected: (i) => setState(() => _currentIndex = i),
-            destinations: const [
-              NavigationDestination(
-                icon: Icon(Icons.home_outlined),
-                selectedIcon: Icon(Icons.home),
-                label: 'Home',
+            return Scaffold(
+              body: IndexedStack(index: _currentIndex, children: pages),
+              bottomNavigationBar: NavigationBar(
+                selectedIndex: _currentIndex,
+                onDestinationSelected: (i) =>
+                    setState(() => _currentIndex = i),
+                destinations: const [
+                  NavigationDestination(
+                    icon: Icon(Icons.home_outlined),
+                    selectedIcon: Icon(Icons.home),
+                    label: 'Home',
+                  ),
+                  NavigationDestination(
+                    icon: Icon(Icons.school_outlined),
+                    selectedIcon: Icon(Icons.school),
+                    label: 'Courses',
+                  ),
+                  NavigationDestination(
+                    icon: Icon(Icons.person_outline),
+                    selectedIcon: Icon(Icons.person),
+                    label: 'Profile',
+                  ),
+                ],
               ),
-              NavigationDestination(
-                icon: Icon(Icons.school_outlined),
-                selectedIcon: Icon(Icons.school),
-                label: 'Courses',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.person_outline),
-                selectedIcon: Icon(Icons.person),
-                label: 'Profile',
-              ),
-            ],
-          ),
+            );
+          },
         );
       },
     );
@@ -244,10 +257,11 @@ class _HomeTabState extends State<_HomeTab> {
       appBar: AppBar(
         title: const Text('Course Explorer'),
         actions: [
-          // Tombol untuk toggle local state
           IconButton(
             tooltip: _showSummary ? 'Sembunyikan summary' : 'Tampilkan summary',
-            icon: Icon(_showSummary ? Icons.visibility_off : Icons.visibility),
+            icon: Icon(
+              _showSummary ? Icons.visibility_off : Icons.visibility,
+            ),
             onPressed: () {
               setState(() {
                 _showSummary = !_showSummary;
@@ -259,7 +273,7 @@ class _HomeTabState extends State<_HomeTab> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Header identitas (tetap)
+          // Header identitas
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(20),
@@ -307,9 +321,9 @@ class _HomeTabState extends State<_HomeTab> {
               ],
             ),
           ),
-
           const SizedBox(height: 20),
 
+          // 🟢 Demo ValueNotifier
           const CounterDemo(),
           const SizedBox(height: 20),
 
@@ -338,7 +352,6 @@ class _HomeTabState extends State<_HomeTab> {
             ),
             const SizedBox(height: 24),
           ] else ...[
-            // Pesan kalau summary disembunyikan
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
@@ -350,9 +363,11 @@ class _HomeTabState extends State<_HomeTab> {
                 children: const [
                   Icon(Icons.info_outline, color: Colors.grey),
                   SizedBox(width: 8),
-                  Text(
-                    'Summary disembunyikan',
-                    style: TextStyle(color: Colors.grey),
+                  Expanded(
+                    child: Text(
+                      'Summary disembunyikan (local state demo)',
+                      style: TextStyle(color: Colors.grey),
+                    ),
                   ),
                 ],
               ),
@@ -773,15 +788,6 @@ class _DetailPanel extends StatelessWidget {
 // ============================================================
 // COURSE CARD
 // ============================================================
-/// Presentational widget untuk menampilkan satu course.
-///
-/// Widget ini **tidak memiliki state sendiri** terkait favorite.
-/// Ia hanya:
-/// - menerima `isFavorite` sebagai DATA (turunan dari parent)
-/// - memanggil `onToggleFavorite` sebagai AKSI (diteruskan ke parent)
-///
-/// Dengan pola ini, satu sumber kebenaran (single source of truth)
-/// untuk favorites tetap berada di `_MainShellState`.
 class _CourseCard extends StatelessWidget {
   final Map<String, dynamic> course;
   final bool isFavorite;
@@ -885,9 +891,6 @@ class _CourseCard extends StatelessWidget {
                   ],
                 ),
               ),
-
-              // Tombol favorite: hanya memanggil callback,
-              // tidak tahu apa yang akan dilakukan parent.
               IconButton(
                 onPressed: onToggleFavorite,
                 tooltip: isFavorite
@@ -912,12 +915,12 @@ class _CourseCard extends StatelessWidget {
 class _ProfileTab extends StatelessWidget {
   final Map<String, dynamic> student;
   final int favoriteCount;
-  final VoidCallback onClearFavorites;   // 🟡 parameter baru
+  final VoidCallback onClearFavorites;
 
   const _ProfileTab({
     required this.student,
     required this.favoriteCount,
-    required this.onClearFavorites,      // 🟡 parameter baru
+    required this.onClearFavorites,
   });
 
   @override
@@ -928,10 +931,10 @@ class _ProfileTab extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            CircleAvatar(
+            const CircleAvatar(
               radius: 56,
-              backgroundColor: Colors.blue.shade100,
-              backgroundImage: const AssetImage(profileImagePath),
+              backgroundColor: Colors.blueAccent,
+              backgroundImage: AssetImage(profileImagePath),
             ),
             const SizedBox(height: 16),
             Text(
@@ -962,7 +965,6 @@ class _ProfileTab extends StatelessWidget {
               label: 'Semester',
               value: '${student['semester']}',
             ),
-            // 🟡 Item favorite sekarang punya trailing button
             _ProfileItem(
               icon: Icons.favorite_outline,
               label: 'Course Difavoritkan',
@@ -993,13 +995,13 @@ class _ProfileItem extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
-  final Widget? trailing;   // 🟡 parameter baru
+  final Widget? trailing;
 
   const _ProfileItem({
     required this.icon,
     required this.label,
     required this.value,
-    this.trailing,          // 🟡 optional
+    this.trailing,
   });
 
   @override
@@ -1035,7 +1037,7 @@ class _ProfileItem extends StatelessWidget {
               ],
             ),
           ),
-          ?trailing,   // 🟡 render kalau ada
+          ?trailing,
         ],
       ),
     );
