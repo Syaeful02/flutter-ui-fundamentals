@@ -1,9 +1,10 @@
 // 2415051059 - Syaeful Darmawan
-// Course Explorer v2 — Tahap 5: ChangeNotifier dan notifyListeners()
+// Course Explorer v2 — Tahap 6: Provider pada Widget Tree
 
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:provider/provider.dart';
 
 import 'course_state.dart';
 import 'counter_demo.dart';
@@ -16,19 +17,25 @@ void main() {
   runApp(const MyApp());
 }
 
+// ============================================================
+// MY APP — dibungkus ChangeNotifierProvider
+// ============================================================
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Course Explorer v2',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true,
+    return ChangeNotifierProvider(
+      create: (_) => CourseState(),
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'Course Explorer v2',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+          useMaterial3: true,
+        ),
+        home: const MainShell(),
       ),
-      home: const MainShell(),
     );
   }
 }
@@ -45,10 +52,6 @@ class MainShell extends StatefulWidget {
 
 class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
-
-  // 🟢 State favorites dikelola oleh ChangeNotifier terpisah
-  final CourseState _courseState = CourseState();
-
   Map<String, dynamic>? _selectedCourse;
 
   Map<String, dynamic>? _student;
@@ -59,12 +62,6 @@ class _MainShellState extends State<MainShell> {
   void initState() {
     super.initState();
     _loadData();
-  }
-
-  @override
-  void dispose() {
-    _courseState.dispose();
-    super.dispose();
   }
 
   Future<void> _loadData() async {
@@ -78,10 +75,10 @@ class _MainShellState extends State<MainShell> {
   }
 
   void _toggleFavorite(String code, {bool showFeedback = true}) {
-    final wasFav = _courseState.isFavorite(code);
+    final courseState = context.read<CourseState>();
+    final wasFav = courseState.isFavorite(code);
 
-    // 🟢 Cukup panggil method — notifyListeners() akan memicu rebuild
-    _courseState.toggleFavorite(code);
+    courseState.toggleFavorite(code);
 
     if (showFeedback) {
       final course = _courses!.firstWhere(
@@ -107,10 +104,9 @@ class _MainShellState extends State<MainShell> {
       );
     }
 
-    // 🟢 ListenableBuilder mendengar perubahan CourseState
-    return ListenableBuilder(
-      listenable: _courseState,
-      builder: (context, _) {
+    // Consumer mendengarkan CourseState
+    return Consumer<CourseState>(
+      builder: (context, courseState, _) {
         return LayoutBuilder(
           builder: (context, constraints) {
             final bool isExpanded = constraints.maxWidth >= 840;
@@ -119,26 +115,26 @@ class _MainShellState extends State<MainShell> {
               _HomeTab(
                 student: _student!,
                 courses: _courses!,
-                favorites: _courseState.favorites,
+                favorites: courseState.favorites,
               ),
               isExpanded
                   ? _CoursesMasterDetail(
                       courses: _courses!,
-                      favorites: _courseState.favorites,
+                      favorites: courseState.favorites,
                       selectedCourse: _selectedCourse,
                       onSelect: (c) => setState(() => _selectedCourse = c),
                       onToggleFavorite: _toggleFavorite,
                     )
                   : _CoursesTab(
                       courses: _courses!,
-                      favorites: _courseState.favorites,
+                      favorites: courseState.favorites,
                       onToggleFavorite: _toggleFavorite,
                     ),
               _ProfileTab(
                 student: _student!,
-                favoriteCount: _courseState.favoriteCount,
+                favoriteCount: courseState.favoriteCount,
                 onClearFavorites: () {
-                  _courseState.clearFavorites();
+                  courseState.clearFavorites();
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Semua favorite dihapus'),
@@ -248,7 +244,6 @@ class _HomeTab extends StatefulWidget {
 }
 
 class _HomeTabState extends State<_HomeTab> {
-  // 🟢 LOCAL STATE DEMO: hanya widget ini yang butuh
   bool _showSummary = true;
 
   @override
@@ -273,7 +268,6 @@ class _HomeTabState extends State<_HomeTab> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Header identitas
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(20),
@@ -323,11 +317,9 @@ class _HomeTabState extends State<_HomeTab> {
           ),
           const SizedBox(height: 20),
 
-          // 🟢 Demo ValueNotifier
           const CounterDemo(),
           const SizedBox(height: 20),
 
-          // 🟢 Bagian yang di-toggle oleh local state
           if (_showSummary) ...[
             Row(
               children: [
@@ -375,7 +367,6 @@ class _HomeTabState extends State<_HomeTab> {
             const SizedBox(height: 24),
           ],
 
-          // Search field
           TextField(
             decoration: InputDecoration(
               hintText: 'Search courses...',
@@ -1037,7 +1028,7 @@ class _ProfileItem extends StatelessWidget {
               ],
             ),
           ),
-          ?trailing,
+          if (trailing != null) trailing!,
         ],
       ),
     );
