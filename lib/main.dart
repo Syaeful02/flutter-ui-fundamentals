@@ -1,5 +1,5 @@
 // 2415051059 - Syaeful Darmawan
-// Course Explorer v2 — Tahap 6: Provider pada Widget Tree
+// Course Explorer v2 — Tahap 7: watch vs read vs Consumer
 
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -18,7 +18,7 @@ void main() {
 }
 
 // ============================================================
-// MY APP — dibungkus ChangeNotifierProvider
+// MY APP
 // ============================================================
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -75,6 +75,7 @@ class _MainShellState extends State<MainShell> {
   }
 
   void _toggleFavorite(String code, {bool showFeedback = true}) {
+    // READ: ambil CourseState tanpa listen — untuk action
     final courseState = context.read<CourseState>();
     final wasFav = courseState.isFavorite(code);
 
@@ -104,121 +105,106 @@ class _MainShellState extends State<MainShell> {
       );
     }
 
-    // Consumer mendengarkan CourseState
-    return Consumer<CourseState>(
-      builder: (context, courseState, _) {
-        return LayoutBuilder(
-          builder: (context, constraints) {
-            final bool isExpanded = constraints.maxWidth >= 840;
+    // Root: TIDAK pakai Consumer/watch — tidak butuh ikut rebuild.
+    // Rebuild akan terjadi di area kecil yang memang listen (Home, Profile, Courses).
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final bool isExpanded = constraints.maxWidth >= 840;
 
-            final pages = [
-              _HomeTab(
-                student: _student!,
-                courses: _courses!,
-                favorites: courseState.favorites,
-              ),
-              isExpanded
-                  ? _CoursesMasterDetail(
-                      courses: _courses!,
-                      favorites: courseState.favorites,
-                      selectedCourse: _selectedCourse,
-                      onSelect: (c) => setState(() => _selectedCourse = c),
-                      onToggleFavorite: _toggleFavorite,
-                    )
-                  : _CoursesTab(
-                      courses: _courses!,
-                      favorites: courseState.favorites,
-                      onToggleFavorite: _toggleFavorite,
-                    ),
-              _ProfileTab(
-                student: _student!,
-                favoriteCount: courseState.favoriteCount,
-                onClearFavorites: () {
-                  courseState.clearFavorites();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Semua favorite dihapus'),
-                      behavior: SnackBarBehavior.floating,
-                    ),
-                  );
-                },
-              ),
-            ];
+        final pages = [
+          _HomeTab(student: _student!, courses: _courses!),
+          isExpanded
+              ? _CoursesMasterDetail(
+                  courses: _courses!,
+                  selectedCourse: _selectedCourse,
+                  onSelect: (c) => setState(() => _selectedCourse = c),
+                  onToggleFavorite: _toggleFavorite,
+                )
+              : _CoursesTab(
+                  courses: _courses!,
+                  onToggleFavorite: _toggleFavorite,
+                ),
+          _ProfileTab(
+            student: _student!,
+            onClearFavorites: () {
+              context.read<CourseState>().clearFavorites();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Semua favorite dihapus'),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            },
+          ),
+        ];
 
-            if (isExpanded) {
-              return Scaffold(
-                body: Row(
-                  children: [
-                    NavigationRail(
-                      selectedIndex: _currentIndex,
-                      onDestinationSelected: (i) =>
-                          setState(() => _currentIndex = i),
-                      labelType: NavigationRailLabelType.all,
-                      leading: Padding(
-                        padding: const EdgeInsets.only(top: 12, bottom: 8),
-                        child: CircleAvatar(
-                          radius: 22,
-                          backgroundColor: Colors.blue.shade100,
-                          backgroundImage:
-                              const AssetImage(profileImagePath),
-                        ),
-                      ),
-                      destinations: const [
-                        NavigationRailDestination(
-                          icon: Icon(Icons.home_outlined),
-                          selectedIcon: Icon(Icons.home),
-                          label: Text('Home'),
-                        ),
-                        NavigationRailDestination(
-                          icon: Icon(Icons.school_outlined),
-                          selectedIcon: Icon(Icons.school),
-                          label: Text('Courses'),
-                        ),
-                        NavigationRailDestination(
-                          icon: Icon(Icons.person_outline),
-                          selectedIcon: Icon(Icons.person),
-                          label: Text('Profile'),
-                        ),
-                      ],
+        if (isExpanded) {
+          return Scaffold(
+            body: Row(
+              children: [
+                NavigationRail(
+                  selectedIndex: _currentIndex,
+                  onDestinationSelected: (i) =>
+                      setState(() => _currentIndex = i),
+                  labelType: NavigationRailLabelType.all,
+                  leading: Padding(
+                    padding: const EdgeInsets.only(top: 12, bottom: 8),
+                    child: CircleAvatar(
+                      radius: 22,
+                      backgroundColor: Colors.blue.shade100,
+                      backgroundImage: const AssetImage(profileImagePath),
                     ),
-                    const VerticalDivider(width: 1),
-                    Expanded(
-                      child: IndexedStack(
-                        index: _currentIndex,
-                        children: pages,
-                      ),
+                  ),
+                  destinations: const [
+                    NavigationRailDestination(
+                      icon: Icon(Icons.home_outlined),
+                      selectedIcon: Icon(Icons.home),
+                      label: Text('Home'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.school_outlined),
+                      selectedIcon: Icon(Icons.school),
+                      label: Text('Courses'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.person_outline),
+                      selectedIcon: Icon(Icons.person),
+                      label: Text('Profile'),
                     ),
                   ],
                 ),
-              );
-            }
+                const VerticalDivider(width: 1),
+                Expanded(
+                  child: IndexedStack(index: _currentIndex, children: pages),
+                ),
+              ],
+            ),
+          );
+        }
 
-            return Scaffold(
-              body: IndexedStack(index: _currentIndex, children: pages),
-              bottomNavigationBar: NavigationBar(
-                selectedIndex: _currentIndex,
-                onDestinationSelected: (i) =>
-                    setState(() => _currentIndex = i),
-                destinations: const [
-                  NavigationDestination(
-                    icon: Icon(Icons.home_outlined),
-                    selectedIcon: Icon(Icons.home),
-                    label: 'Home',
-                  ),
-                  NavigationDestination(
-                    icon: Icon(Icons.school_outlined),
-                    selectedIcon: Icon(Icons.school),
-                    label: 'Courses',
-                  ),
-                  NavigationDestination(
-                    icon: Icon(Icons.person_outline),
-                    selectedIcon: Icon(Icons.person),
-                    label: 'Profile',
-                  ),
-                ],
+        return Scaffold(
+          body: IndexedStack(index: _currentIndex, children: pages),
+          bottomNavigationBar: NavigationBar(
+            selectedIndex: _currentIndex,
+            onDestinationSelected: (i) => setState(() => _currentIndex = i),
+            destinations: const [
+              NavigationDestination(
+                icon: Icon(Icons.home_outlined),
+                selectedIcon: Icon(Icons.home),
+                label: 'Home',
               ),
-            );
-          },
+              NavigationDestination(
+                icon: Icon(Icons.school_outlined),
+                selectedIcon: Icon(Icons.school),
+                label: 'Courses',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.person_outline),
+                selectedIcon: Icon(Icons.person),
+                label: 'Profile',
+              ),
+            ],
+          ),
         );
       },
     );
@@ -226,17 +212,15 @@ class _MainShellState extends State<MainShell> {
 }
 
 // ============================================================
-// TAB 1 — HOME
+// TAB 1 — HOME (pakai context.watch)
 // ============================================================
 class _HomeTab extends StatefulWidget {
   final Map<String, dynamic> student;
   final List<dynamic> courses;
-  final Set<String> favorites;
 
   const _HomeTab({
     required this.student,
     required this.courses,
-    required this.favorites,
   });
 
   @override
@@ -248,6 +232,9 @@ class _HomeTabState extends State<_HomeTab> {
 
   @override
   Widget build(BuildContext context) {
+    // WATCH: Home butuh ikut rebuild saat favorite berubah (badge jumlah)
+    final courseState = context.watch<CourseState>();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Course Explorer'),
@@ -268,6 +255,7 @@ class _HomeTabState extends State<_HomeTab> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          // Header identitas
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(20),
@@ -333,10 +321,11 @@ class _HomeTabState extends State<_HomeTab> {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
+                  // Nilai favorite dari WATCH — otomatis rebuild
                   child: _SummaryCard(
                     icon: Icons.favorite_outline,
                     label: 'Favorite',
-                    value: '${widget.favorites.length}',
+                    value: '${courseState.favoriteCount}',
                     color: Colors.red,
                   ),
                 ),
@@ -351,8 +340,8 @@ class _HomeTabState extends State<_HomeTab> {
                 color: Colors.grey.shade100,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Row(
-                children: const [
+              child: const Row(
+                children: [
                   Icon(Icons.info_outline, color: Colors.grey),
                   SizedBox(width: 8),
                   Expanded(
@@ -494,16 +483,14 @@ class _MiniCourseTile extends StatelessWidget {
 }
 
 // ============================================================
-// TAB 2a — COURSES (compact)
+// TAB 2a — COURSES compact (pakai Consumer di area kecil)
 // ============================================================
 class _CoursesTab extends StatelessWidget {
   final List<dynamic> courses;
-  final Set<String> favorites;
   final void Function(String code, {bool showFeedback}) onToggleFavorite;
 
   const _CoursesTab({
     required this.courses,
-    required this.favorites,
     required this.onToggleFavorite,
   });
 
@@ -572,24 +559,30 @@ class _CoursesTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Courses')),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: courses.length,
-        itemBuilder: (context, i) {
-          final c = courses[i] as Map<String, dynamic>;
-          final isFav = favorites.contains(c['code']);
-          return _CourseCard(
-            course: c,
-            isFavorite: isFav,
-            onTap: () => _openDetail(context, c),
-            onToggleFavorite: () {
-              if (isFav) {
-                _confirmRemoveFavorite(context, c);
-              } else {
-                onToggleFavorite(c['code'] as String);
-              }
+      body: Consumer<CourseState>(
+        // CONSUMER: hanya area list yang rebuild saat favorite berubah.
+        // AppBar & Scaffold tidak ikut rebuild.
+        builder: (context, courseState, _) {
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: courses.length,
+            itemBuilder: (context, i) {
+              final c = courses[i] as Map<String, dynamic>;
+              final isFav = courseState.isFavorite(c['code'] as String);
+              return _CourseCard(
+                course: c,
+                isFavorite: isFav,
+                onTap: () => _openDetail(context, c),
+                onToggleFavorite: () {
+                  if (isFav) {
+                    _confirmRemoveFavorite(context, c);
+                  } else {
+                    onToggleFavorite(c['code'] as String);
+                  }
+                },
+                onLongPress: () => _showQuickInfo(context, c),
+              );
             },
-            onLongPress: () => _showQuickInfo(context, c),
           );
         },
       ),
@@ -598,18 +591,16 @@ class _CoursesTab extends StatelessWidget {
 }
 
 // ============================================================
-// TAB 2b — COURSES (expanded: master-detail)
+// TAB 2b — COURSES expanded (pakai Consumer di area kecil)
 // ============================================================
 class _CoursesMasterDetail extends StatelessWidget {
   final List<dynamic> courses;
-  final Set<String> favorites;
   final Map<String, dynamic>? selectedCourse;
   final void Function(Map<String, dynamic>) onSelect;
   final void Function(String code, {bool showFeedback}) onToggleFavorite;
 
   const _CoursesMasterDetail({
     required this.courses,
-    required this.favorites,
     required this.selectedCourse,
     required this.onSelect,
     required this.onToggleFavorite,
@@ -623,21 +614,26 @@ class _CoursesMasterDetail extends StatelessWidget {
         children: [
           SizedBox(
             width: 340,
-            child: ListView.builder(
-              padding: const EdgeInsets.all(12),
-              itemCount: courses.length,
-              itemBuilder: (context, i) {
-                final c = courses[i] as Map<String, dynamic>;
-                final isFav = favorites.contains(c['code']);
-                final isSelected = selectedCourse?['code'] == c['code'];
-                return _CourseCard(
-                  course: c,
-                  isFavorite: isFav,
-                  isSelected: isSelected,
-                  onTap: () => onSelect(c),
-                  onToggleFavorite: () =>
-                      onToggleFavorite(c['code'] as String),
-                  onLongPress: () {},
+            child: Consumer<CourseState>(
+              builder: (context, courseState, _) {
+                return ListView.builder(
+                  padding: const EdgeInsets.all(12),
+                  itemCount: courses.length,
+                  itemBuilder: (context, i) {
+                    final c = courses[i] as Map<String, dynamic>;
+                    final isFav =
+                        courseState.isFavorite(c['code'] as String);
+                    final isSelected = selectedCourse?['code'] == c['code'];
+                    return _CourseCard(
+                      course: c,
+                      isFavorite: isFav,
+                      isSelected: isSelected,
+                      onTap: () => onSelect(c),
+                      onToggleFavorite: () =>
+                          onToggleFavorite(c['code'] as String),
+                      onLongPress: () {},
+                    );
+                  },
                 );
               },
             ),
@@ -777,7 +773,7 @@ class _DetailPanel extends StatelessWidget {
 }
 
 // ============================================================
-// COURSE CARD
+// COURSE CARD (murni presentational)
 // ============================================================
 class _CourseCard extends StatelessWidget {
   final Map<String, dynamic> course;
@@ -901,16 +897,14 @@ class _CourseCard extends StatelessWidget {
 }
 
 // ============================================================
-// TAB 3 — PROFILE
+// TAB 3 — PROFILE (pakai Consumer untuk jumlah favorite)
 // ============================================================
 class _ProfileTab extends StatelessWidget {
   final Map<String, dynamic> student;
-  final int favoriteCount;
   final VoidCallback onClearFavorites;
 
   const _ProfileTab({
     required this.student,
-    required this.favoriteCount,
     required this.onClearFavorites,
   });
 
@@ -956,21 +950,28 @@ class _ProfileTab extends StatelessWidget {
               label: 'Semester',
               value: '${student['semester']}',
             ),
-            _ProfileItem(
-              icon: Icons.favorite_outline,
-              label: 'Course Difavoritkan',
-              value: '$favoriteCount course',
-              trailing: favoriteCount > 0
-                  ? IconButton(
-                      icon: const Icon(
-                        Icons.delete_sweep_outlined,
-                        color: Colors.red,
-                      ),
-                      tooltip: 'Hapus semua favorite',
-                      onPressed: onClearFavorites,
-                    )
-                  : null,
+
+            // CONSUMER: hanya item favorite yang rebuild saat jumlah berubah
+            Consumer<CourseState>(
+              builder: (context, courseState, _) {
+                return _ProfileItem(
+                  icon: Icons.favorite_outline,
+                  label: 'Course Difavoritkan',
+                  value: '${courseState.favoriteCount} course',
+                  trailing: courseState.favoriteCount > 0
+                      ? IconButton(
+                          icon: const Icon(
+                            Icons.delete_sweep_outlined,
+                            color: Colors.red,
+                          ),
+                          tooltip: 'Hapus semua favorite',
+                          onPressed: onClearFavorites,
+                        )
+                      : null,
+                );
+              },
             ),
+
             const SizedBox(height: 28),
             const Divider(),
             const SizedBox(height: 12),
@@ -1216,7 +1217,7 @@ class _FeedbackFormState extends State<FeedbackForm> {
 }
 
 // ============================================================
-// COURSE DETAIL PAGE (compact)
+// COURSE DETAIL PAGE (compact) — pakai Consumer untuk tombol fav
 // ============================================================
 class CourseDetailPage extends StatelessWidget {
   final Map<String, dynamic> course;
@@ -1314,18 +1315,34 @@ class CourseDetailPage extends StatelessWidget {
             const Text('Pendidikan Teknik Informatika'),
             const Text('Universitas Pendidikan Ganesha'),
             const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton.icon(
-                onPressed: () => Navigator.pop(context, true),
-                style: FilledButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                ),
-                icon: const Icon(Icons.favorite),
-                label: const Text('Pilih / Favoritkan'),
-              ),
+
+            // CONSUMER: tombol favorit ini rebuild saat status favorite berubah
+            Consumer<CourseState>(
+              builder: (context, courseState, _) {
+                final isFav = courseState.isFavorite(course['code'] as String);
+                return SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: () {
+                      // READ untuk aksi
+                      context
+                          .read<CourseState>()
+                          .toggleFavorite(course['code'] as String);
+                      Navigator.pop(context, true);
+                    },
+                    style: FilledButton.styleFrom(
+                      backgroundColor: isFav ? Colors.grey : Colors.red,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    icon: Icon(isFav ? Icons.favorite : Icons.favorite_border),
+                    label: Text(
+                      isFav ? 'Hapus dari Favorit' : 'Pilih / Favoritkan',
+                    ),
+                  ),
+                );
+              },
             ),
+
             const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
