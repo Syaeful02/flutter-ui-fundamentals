@@ -1,5 +1,5 @@
 // 2415051059 - Syaeful Darmawan
-// Course Explorer v2 — Tahap 9: CourseService
+// Course Explorer v2 — Tahap 10: Repository
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'course_state.dart';
 import 'counter_demo.dart';
 import 'models/course.dart';
+import 'repositories/course_repository.dart';
 import 'services/course_service.dart';
 
 const String studentName = 'Syaeful Darmawan';
@@ -54,8 +55,8 @@ class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
   Course? _selectedCourse;
 
-  // Service untuk akses data — UI tidak tahu detail sumbernya
-  final CourseService _service = CourseService();
+  // Repository sebagai pintu masuk data
+  late final CourseRepository _repository;
 
   Map<String, dynamic>? _student;
   List<Course>? _courses;
@@ -64,13 +65,15 @@ class _MainShellState extends State<MainShell> {
   @override
   void initState() {
     super.initState();
+    // Inisialisasi: Service → Repository
+    _repository = CourseRepository(CourseService());
     _loadData();
   }
 
   Future<void> _loadData() async {
-    // Panggil SERVICE, bukan rootBundle langsung
-    final student = await _service.loadStudent();
-    final courses = await _service.loadCourses();
+    // UI hanya tahu Repository — tidak tahu Service / JSON
+    final student = await _repository.getStudent();
+    final courses = await _repository.getCourses();
 
     setState(() {
       _student = student;
