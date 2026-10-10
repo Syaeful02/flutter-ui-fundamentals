@@ -297,29 +297,54 @@ class _HomeTabState extends State<_HomeTab> {
 
           const SizedBox(height: 20),
 
-          Row(
-            children: [
-              Expanded(
-                child: _SummaryCard(
-                  icon: Icons.menu_book_outlined,
-                  label: 'Total Course',
-                  value: '${courses.length}',
-                  color: Colors.blue,
+          // 🟢 Bagian yang di-toggle oleh local state
+          if (_showSummary) ...[
+            Row(
+              children: [
+                Expanded(
+                  child: _SummaryCard(
+                    icon: Icons.menu_book_outlined,
+                    label: 'Total Course',
+                    value: '${widget.courses.length}',
+                    color: Colors.blue,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _SummaryCard(
-                  icon: Icons.favorite_outline,
-                  label: 'Favorite',
-                  value: '${favorites.length}',
-                  color: Colors.red,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _SummaryCard(
+                    icon: Icons.favorite_outline,
+                    label: 'Favorite',
+                    value: '${widget.favorites.length}',
+                    color: Colors.red,
+                  ),
                 ),
+              ],
+            ),
+            const SizedBox(height: 24),
+          ] else ...[
+            // Pesan kalau summary disembunyikan
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(12),
               ),
-            ],
-          ),
-          const SizedBox(height: 24),
+              child: Row(
+                children: const [
+                  Icon(Icons.info_outline, color: Colors.grey),
+                  SizedBox(width: 8),
+                  Text(
+                    'Summary disembunyikan',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+          ],
 
+          // Search field
           TextField(
             decoration: InputDecoration(
               hintText: 'Search courses...',
