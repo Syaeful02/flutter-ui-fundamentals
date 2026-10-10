@@ -769,6 +769,15 @@ class _DetailPanel extends StatelessWidget {
 // ============================================================
 // COURSE CARD
 // ============================================================
+/// Presentational widget untuk menampilkan satu course.
+///
+/// Widget ini **tidak memiliki state sendiri** terkait favorite.
+/// Ia hanya:
+/// - menerima `isFavorite` sebagai DATA (turunan dari parent)
+/// - memanggil `onToggleFavorite` sebagai AKSI (diteruskan ke parent)
+///
+/// Dengan pola ini, satu sumber kebenaran (single source of truth)
+/// untuk favorites tetap berada di `_MainShellState`.
 class _CourseCard extends StatelessWidget {
   final Map<String, dynamic> course;
   final bool isFavorite;
@@ -872,6 +881,9 @@ class _CourseCard extends StatelessWidget {
                   ],
                 ),
               ),
+
+              // Tombol favorite: hanya memanggil callback,
+              // tidak tahu apa yang akan dilakukan parent.
               IconButton(
                 onPressed: onToggleFavorite,
                 tooltip: isFavorite
