@@ -206,7 +206,7 @@ class _MainShellState extends State<MainShell> {
 // ============================================================
 // TAB 1 — HOME
 // ============================================================
-class _HomeTab extends StatelessWidget {
+class _HomeTab extends StatefulWidget {
   final Map<String, dynamic> student;
   final List<dynamic> courses;
   final Set<String> favorites;
@@ -218,13 +218,35 @@ class _HomeTab extends StatelessWidget {
   });
 
   @override
+  State<_HomeTab> createState() => _HomeTabState();
+}
+
+class _HomeTabState extends State<_HomeTab> {
+  // 🟢 LOCAL STATE DEMO: hanya widget ini yang butuh
+  bool _showSummary = true;
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Course Explorer')),
+      appBar: AppBar(
+        title: const Text('Course Explorer'),
+        actions: [
+          // Tombol untuk toggle local state
+          IconButton(
+            tooltip: _showSummary ? 'Sembunyikan summary' : 'Tampilkan summary',
+            icon: Icon(_showSummary ? Icons.visibility_off : Icons.visibility),
+            onPressed: () {
+              setState(() {
+                _showSummary = !_showSummary;
+              });
+            },
+          ),
+        ],
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Header dengan foto profil
+          // Header identitas (tetap)
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(20),
@@ -238,10 +260,10 @@ class _HomeTab extends StatelessWidget {
             ),
             child: Row(
               children: [
-                CircleAvatar(
+                const CircleAvatar(
                   radius: 32,
                   backgroundColor: Colors.white,
-                  backgroundImage: const AssetImage(profileImagePath),
+                  backgroundImage: AssetImage(profileImagePath),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -249,7 +271,7 @@ class _HomeTab extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        student['name'] as String,
+                        widget.student['name'] as String,
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -258,12 +280,12 @@ class _HomeTab extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'NIM: ${student['nim']}',
+                        'NIM: ${widget.student['nim']}',
                         style: const TextStyle(color: Colors.white70),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        student['program'] as String,
+                        widget.student['program'] as String,
                         style: const TextStyle(color: Colors.white70),
                       ),
                     ],
@@ -272,31 +294,57 @@ class _HomeTab extends StatelessWidget {
               ],
             ),
           ),
+
           const SizedBox(height: 20),
 
-          Row(
-            children: [
-              Expanded(
-                child: _SummaryCard(
-                  icon: Icons.menu_book_outlined,
-                  label: 'Total Course',
-                  value: '${courses.length}',
-                  color: Colors.blue,
+          // 🟢 Bagian yang di-toggle oleh local state
+          if (_showSummary) ...[
+            Row(
+              children: [
+                Expanded(
+                  child: _SummaryCard(
+                    icon: Icons.menu_book_outlined,
+                    label: 'Total Course',
+                    value: '${widget.courses.length}',
+                    color: Colors.blue,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _SummaryCard(
-                  icon: Icons.favorite_outline,
-                  label: 'Favorite',
-                  value: '${favorites.length}',
-                  color: Colors.red,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _SummaryCard(
+                    icon: Icons.favorite_outline,
+                    label: 'Favorite',
+                    value: '${widget.favorites.length}',
+                    color: Colors.red,
+                  ),
                 ),
+              ],
+            ),
+            const SizedBox(height: 24),
+          ] else ...[
+            // Pesan kalau summary disembunyikan
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(12),
               ),
-            ],
-          ),
-          const SizedBox(height: 24),
+              child: Row(
+                children: const [
+                  Icon(Icons.info_outline, color: Colors.grey),
+                  SizedBox(width: 8),
+                  Text(
+                    'Summary disembunyikan (local state demo)',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+          ],
 
+          // Search field
           TextField(
             decoration: InputDecoration(
               hintText: 'Search courses...',
@@ -317,7 +365,7 @@ class _HomeTab extends StatelessWidget {
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
-          ...courses.take(3).map((c) {
+          ...widget.courses.take(3).map((c) {
             final m = c as Map<String, dynamic>;
             return _MiniCourseTile(course: m);
           }),
