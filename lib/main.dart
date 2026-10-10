@@ -124,6 +124,18 @@ class _MainShellState extends State<MainShell> {
           _ProfileTab(
             student: _student!,
             favoriteCount: _favorites.length,
+            // 🟡 Callback ini harus diteruskan 2 layer ke bawah
+            onClearFavorites: () {
+              setState(() {
+                _favorites.clear();
+              });
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Semua favorite dihapus'),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            },
           ),
         ];
 
@@ -884,10 +896,12 @@ class _CourseCard extends StatelessWidget {
 class _ProfileTab extends StatelessWidget {
   final Map<String, dynamic> student;
   final int favoriteCount;
+  final VoidCallback onClearFavorites;   // 🟡 parameter baru
 
   const _ProfileTab({
     required this.student,
     required this.favoriteCount,
+    required this.onClearFavorites,      // 🟡 parameter baru
   });
 
   @override
@@ -898,7 +912,6 @@ class _ProfileTab extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            // FOTO PROFIL
             CircleAvatar(
               radius: 56,
               backgroundColor: Colors.blue.shade100,
@@ -933,10 +946,21 @@ class _ProfileTab extends StatelessWidget {
               label: 'Semester',
               value: '${student['semester']}',
             ),
+            // 🟡 Item favorite sekarang punya trailing button
             _ProfileItem(
               icon: Icons.favorite_outline,
               label: 'Course Difavoritkan',
               value: '$favoriteCount course',
+              trailing: favoriteCount > 0
+                  ? IconButton(
+                      icon: const Icon(
+                        Icons.delete_sweep_outlined,
+                        color: Colors.red,
+                      ),
+                      tooltip: 'Hapus semua favorite',
+                      onPressed: onClearFavorites,
+                    )
+                  : null,
             ),
             const SizedBox(height: 28),
             const Divider(),
@@ -953,11 +977,13 @@ class _ProfileItem extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
+  final Widget? trailing;   // 🟡 parameter baru
 
   const _ProfileItem({
     required this.icon,
     required this.label,
     required this.value,
+    this.trailing,          // 🟡 optional
   });
 
   @override
@@ -993,6 +1019,7 @@ class _ProfileItem extends StatelessWidget {
               ],
             ),
           ),
+          ?trailing,   // 🟡 render kalau ada
         ],
       ),
     );
