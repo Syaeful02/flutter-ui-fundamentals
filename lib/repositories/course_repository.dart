@@ -1,4 +1,12 @@
 // 2415051059 - Syaeful Darmawan
+//
+// TANGGUNG JAWAB:
+// Menjadi perantara antara Provider dan Service.
+// Menyembunyikan detail sumber data dari layer di atasnya.
+//
+// TIDAK BOLEH:
+// - Mengakses rootBundle / API langsung (harus via Service)
+// - Berisi Widget atau BuildContext
 
 import '../models/course.dart';
 import '../services/course_service.dart';

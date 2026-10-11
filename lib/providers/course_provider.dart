@@ -1,4 +1,12 @@
 // 2415051059 - Syaeful Darmawan
+//
+// TANGGUNG JAWAB:
+// Mengelola async state (loading / success / error) untuk data course.
+// Memanggil Repository dan memberi notifikasi ke UI.
+//
+// TIDAK BOLEH:
+// - Menyimpan BuildContext sebagai state
+// - Berisi Widget / kode UI
 
 import 'package:flutter/foundation.dart';
 

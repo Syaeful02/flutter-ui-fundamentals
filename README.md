@@ -133,3 +133,24 @@ Arah dependency:
 ## Lisensi
 
 Praktikum akademik — Universitas Pendidikan Ganesha.
+
+## Audit Architecture
+
+Tanggung jawab tiap folder:
+
+| Folder | Tanggung Jawab | Dependency |
+|---|---|---|
+| `models/` | Representasi data + parsing JSON | Tidak ada |
+| `services/` | Baca data dari sumber (JSON/API) | `models/` |
+| `repositories/` | Abstraksi data source | `models/`, `services/` |
+| `providers/` | State management + business logic | `models/`, `repositories/` |
+| `screens/` | Halaman & navigasi | `models/`, `providers/`, `widgets/` |
+| `widgets/` | Komponen reusable | `models/` (opsional) |
+
+**Arah dependency:** `UI → Provider → Repository → Service → Data Source`
+
+**Aturan yang divalidasi:**
+- Tidak ada `rootBundle` / `jsonDecode` di folder `screens/` atau `widgets/`
+- Tidak ada `BuildContext` di folder `providers/`, `services/`, `repositories/`
+- Tidak ada `Widget` di folder `services/` atau `repositories/`
+- Tidak ada circular dependency antar layer

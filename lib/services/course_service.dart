@@ -1,4 +1,13 @@
-// 2415051059 - Syaeful DarmawanK
+// 2415051059 - Syaeful Darmawan
+//
+// TANGGUNG JAWAB:
+// Membaca data course dari sumber data (asset JSON saat ini).
+// Di masa depan dapat diganti dengan REST API tanpa mengubah
+// layer di atasnya (Repository/Provider/UI).
+//
+// TIDAK BOLEH:
+// - Berisi Widget atau BuildContext
+// - Tahu tentang Provider atau UI
 
 import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
