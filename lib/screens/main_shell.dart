@@ -8,6 +8,7 @@ import '../providers/course_provider.dart';
 import '../providers/course_state.dart';
 import '../widgets/common_widgets.dart';
 import 'courses_tab.dart';
+import 'favorites_tab.dart';
 import 'home_tab.dart';
 import 'profile_tab.dart';
 
@@ -107,8 +108,12 @@ class _MainShellState extends State<MainShell> {
       builder: (context, constraints) {
         final bool isExpanded = constraints.maxWidth >= 840;
 
+        // -------- Pages (4 tab) --------
         final pages = [
+          // 0: Home
           HomeTab(student: student, courses: courses),
+
+          // 1: Courses (compact: list, expanded: master-detail)
           isExpanded
               ? CoursesMasterDetail(
                   courses: courses,
@@ -120,6 +125,14 @@ class _MainShellState extends State<MainShell> {
                   courses: courses,
                   onToggleFavorite: _toggleFavorite,
                 ),
+
+          // 2: Favorites — hanya course yang difavoritkan
+          FavoritesTab(
+            courses: courses,
+            onToggleFavorite: _toggleFavorite,
+          ),
+
+          // 3: Profile
           ProfileTab(
             student: student,
             onClearFavorites: () {
@@ -134,6 +147,7 @@ class _MainShellState extends State<MainShell> {
           ),
         ];
 
+        // -------- EXPANDED: NavigationRail --------
         if (isExpanded) {
           return Scaffold(
             body: Row(
@@ -159,6 +173,11 @@ class _MainShellState extends State<MainShell> {
                       label: Text('Courses'),
                     ),
                     NavigationRailDestination(
+                      icon: Icon(Icons.favorite_outline),
+                      selectedIcon: Icon(Icons.favorite),
+                      label: Text('Favorites'),
+                    ),
+                    NavigationRailDestination(
                       icon: Icon(Icons.person_outline),
                       selectedIcon: Icon(Icons.person),
                       label: Text('Profile'),
@@ -174,6 +193,7 @@ class _MainShellState extends State<MainShell> {
           );
         }
 
+        // -------- COMPACT: NavigationBar (4 tab) --------
         return Scaffold(
           body: IndexedStack(index: _currentIndex, children: pages),
           bottomNavigationBar: NavigationBar(
@@ -189,6 +209,11 @@ class _MainShellState extends State<MainShell> {
                 icon: Icon(Icons.school_outlined),
                 selectedIcon: Icon(Icons.school),
                 label: 'Courses',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.favorite_outline),
+                selectedIcon: Icon(Icons.favorite),
+                label: 'Favorites',
               ),
               NavigationDestination(
                 icon: Icon(Icons.person_outline),
