@@ -1,5 +1,4 @@
 // 2415051059 - Syaeful Darmawan
-// CourseProvider — mengelola async state (loading, success, error).
 
 import 'package:flutter/foundation.dart';
 
