@@ -1,5 +1,5 @@
 // 2415051059 - Syaeful Darmawan
-// Course Explorer v2 — Tahap 10: Repository
+// Course Explorer v2 — Tahap 11: Async state (loading/error/success)
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'course_state.dart';
 import 'counter_demo.dart';
 import 'models/course.dart';
+import 'providers/course_provider.dart';
 import 'repositories/course_repository.dart';
 import 'services/course_service.dart';
 
@@ -19,15 +20,22 @@ void main() {
 }
 
 // ============================================================
-// MY APP
+// MY APP — pakai MultiProvider
 // ============================================================
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => CourseState(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => CourseState()),
+        ChangeNotifierProvider(
+          create: (_) => CourseProvider(
+            CourseRepository(CourseService()),
+          ),
+        ),
+      ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Course Explorer v2',
@@ -42,7 +50,7 @@ class MyApp extends StatelessWidget {
 }
 
 // ============================================================
-// MAIN SHELL
+// MAIN SHELL — cukup baca state dari CourseProvider
 // ============================================================
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -55,41 +63,16 @@ class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
   Course? _selectedCourse;
 
-  // Repository sebagai pintu masuk data
-  late final CourseRepository _repository;
-
-  Map<String, dynamic>? _student;
-  List<Course>? _courses;
-  bool _loading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    // Inisialisasi: Service → Repository
-    _repository = CourseRepository(CourseService());
-    _loadData();
-  }
-
-  Future<void> _loadData() async {
-    // UI hanya tahu Repository — tidak tahu Service / JSON
-    final student = await _repository.getStudent();
-    final courses = await _repository.getCourses();
-
-    setState(() {
-      _student = student;
-      _courses = courses;
-      _loading = false;
-    });
-  }
-
   void _toggleFavorite(String code, {bool showFeedback = true}) {
     final courseState = context.read<CourseState>();
-    final wasFav = courseState.isFavorite(code);
+    final courseProvider = context.read<CourseProvider>();
 
+    final wasFav = courseState.isFavorite(code);
     courseState.toggleFavorite(code);
 
     if (showFeedback) {
-      final course = _courses!.firstWhere((c) => c.code == code);
+      final course =
+          courseProvider.courses.firstWhere((c) => c.code == code);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -104,31 +87,87 @@ class _MainShellState extends State<MainShell> {
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) {
+    // WATCH: MainShell butuh tahu loading/error untuk menampilkan UI yang tepat
+    final provider = context.watch<CourseProvider>();
+
+    // -------- Async state: loading --------
+    if (provider.isLoading) {
       return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text('Memuat data course...'),
+            ],
+          ),
+        ),
       );
     }
+
+    // -------- Async state: error --------
+    if (provider.error != null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Course Explorer v2')),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline,
+                    size: 72, color: Colors.red),
+                const SizedBox(height: 16),
+                const Text(
+                  'Gagal memuat data',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  provider.error!,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey.shade700),
+                ),
+                const SizedBox(height: 20),
+                FilledButton.icon(
+                  onPressed: () => provider.loadCourses(),
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Coba Lagi'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    // -------- Async state: success --------
+    final student = provider.student!;
+    final courses = provider.courses;
 
     return LayoutBuilder(
       builder: (context, constraints) {
         final bool isExpanded = constraints.maxWidth >= 840;
 
         final pages = [
-          _HomeTab(student: _student!, courses: _courses!),
+          _HomeTab(student: student, courses: courses),
           isExpanded
               ? _CoursesMasterDetail(
-                  courses: _courses!,
+                  courses: courses,
                   selectedCourse: _selectedCourse,
                   onSelect: (c) => setState(() => _selectedCourse = c),
                   onToggleFavorite: _toggleFavorite,
                 )
               : _CoursesTab(
-                  courses: _courses!,
+                  courses: courses,
                   onToggleFavorite: _toggleFavorite,
                 ),
           _ProfileTab(
-            student: _student!,
+            student: student,
             onClearFavorites: () {
               context.read<CourseState>().clearFavorites();
               ScaffoldMessenger.of(context).showSnackBar(
@@ -235,10 +274,7 @@ class _HomeTab extends StatefulWidget {
   final Map<String, dynamic> student;
   final List<Course> courses;
 
-  const _HomeTab({
-    required this.student,
-    required this.courses,
-  });
+  const _HomeTab({required this.student, required this.courses});
 
   @override
   State<_HomeTab> createState() => _HomeTabState();
@@ -253,7 +289,7 @@ class _HomeTabState extends State<_HomeTab> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Course Explorer'),
+        title: const Text('Course Explorer v2'),
         actions: [
           IconButton(
             tooltip: _showSummary ? 'Sembunyikan summary' : 'Tampilkan summary',
@@ -261,9 +297,7 @@ class _HomeTabState extends State<_HomeTab> {
               _showSummary ? Icons.visibility_off : Icons.visibility,
             ),
             onPressed: () {
-              setState(() {
-                _showSummary = !_showSummary;
-              });
+              setState(() => _showSummary = !_showSummary);
             },
           ),
         ],
