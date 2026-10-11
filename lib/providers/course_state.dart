@@ -1,5 +1,4 @@
 // 2415051059 - Syaeful Darmawan
-// CourseState — ChangeNotifier untuk shared state favorites.
 
 import 'package:flutter/foundation.dart';
 
