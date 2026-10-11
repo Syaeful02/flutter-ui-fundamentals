@@ -21,7 +21,10 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        // Shared favorites state
         ChangeNotifierProvider(create: (_) => CourseState()),
+
+        // Async state (loading/error/success) untuk data course
         ChangeNotifierProvider(
           create: (_) => CourseProvider(
             CourseRepository(CourseService()),
