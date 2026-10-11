@@ -1,5 +1,4 @@
 // 2415051059 - Syaeful Darmawan
-// FavoritesTab — menampilkan course yang difavoritkan.
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
