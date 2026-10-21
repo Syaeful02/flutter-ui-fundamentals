@@ -3,3 +3,4 @@
 const String studentName = 'Syaeful Darmawan';
 const String studentId = '2415051059';
 const String profileImagePath = 'assets/images/profile_syaeful.jpg';
+const String apiBaseUrl = 'https://jsonplaceholder.typicode.com';

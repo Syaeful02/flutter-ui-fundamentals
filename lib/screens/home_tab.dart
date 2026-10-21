@@ -1,8 +1,11 @@
 // 2415051059 - Syaeful Darmawan
 
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:http/http.dart' as http;
 
+import '../constants.dart';
 import '../models/course.dart';
 import '../providers/course_state.dart';
 import '../widgets/common_widgets.dart';
@@ -20,6 +23,34 @@ class HomeTab extends StatefulWidget {
 
 class _HomeTabState extends State<HomeTab> {
   bool _showSummary = true;
+
+  // State sementara untuk Tahap 2 (HTTP GET)
+  List<Course>? _apiCourses;
+  bool _isFetching = false;
+
+  Future<void> _fetchApiData() async {
+    setState(() => _isFetching = true);
+    try {
+      final response = await http.get(Uri.parse('$apiBaseUrl/posts'));
+      if (response.statusCode == 200) {
+        final List data = jsonDecode(response.body) as List;
+        setState(() {
+          // Ambil 3 data pertama dan konversi ke Model Course
+          _apiCourses = data.take(3).map((e) => Course.fromJson(e)).toList();
+        });
+      } else {
+        throw Exception('HTTP ${response.statusCode}');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    } finally {
+      setState(() => _isFetching = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -88,6 +119,24 @@ class _HomeTabState extends State<HomeTab> {
           const SizedBox(height: 20),
 
           const CounterDemo(),
+          const SizedBox(height: 20),
+
+          // === Bagian Uji Coba Tahap 2 ===
+          ElevatedButton.icon(
+            onPressed: _isFetching ? null : _fetchApiData,
+            icon: const Icon(Icons.download),
+            label: Text(_isFetching ? 'Menarik data...' : 'Uji GET API (Preview)'),
+          ),
+          if (_apiCourses != null) ...[
+            const SizedBox(height: 12),
+            const Text('Preview Data API:', style: TextStyle(fontWeight: FontWeight.bold)),
+            ..._apiCourses!.map((c) => ListTile(
+                  title: Text(c.title.length > 30 ? '${c.title.substring(0, 30)}...' : c.title),
+                  subtitle: Text('Code: ${c.code} | SKS: ${c.credits}'),
+                )),
+          ],
+          // ==============================
+
           const SizedBox(height: 20),
 
           if (_showSummary) ...[
