@@ -154,3 +154,21 @@ Tanggung jawab tiap folder:
 - Tidak ada `BuildContext` di folder `providers/`, `services/`, `repositories/`
 - Tidak ada `Widget` di folder `services/` atau `repositories/`
 - Tidak ada circular dependency antar layer
+
+---
+
+## Dokumentasi API (Pertemuan 7)
+
+**Endpoint Latihan:** `https://jsonplaceholder.typicode.com/posts`
+**HTTP Method:** `GET`
+**Status Code:** `200 OK`
+**Resource:** Array of Posts (di-map menjadi Course di aplikasi)
+
+**Struktur JSON (contoh 1 item):**
+```json
+{
+  "userId": 1,
+  "id": 1,
+  "title": "sunt aut facere repellat provident occaecati excepturi optio reprehenderit",
+  "body": "quia et suscipit\nsuscipit..."
+}
