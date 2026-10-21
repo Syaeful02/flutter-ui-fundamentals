@@ -1,5 +1,3 @@
-// 2415051059 - Syaeful Darmawan
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -41,7 +39,7 @@ class CourseDetailPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    course.name,
+                    course.title,
                     style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
@@ -72,7 +70,7 @@ class CourseDetailPage extends StatelessWidget {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             Text(
-              'Mata kuliah ${course.name} dengan kode ${course.code} '
+              'Mata kuliah ${course.title} dengan kode ${course.code} '
               'berbobot ${course.credits} SKS. Status saat ini: ${course.status}.',
               style: const TextStyle(fontSize: 15, height: 1.5),
             ),

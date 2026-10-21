@@ -1,6 +1,3 @@
-// 2415051059 - Syaeful Darmawan
-// CourseCard — presentational widget untuk satu course.
-
 import 'package:flutter/material.dart';
 import '../models/course.dart';
 import 'common_widgets.dart';
@@ -51,7 +48,7 @@ class CourseCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      course.name,
+                      course.title,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,

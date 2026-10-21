@@ -1,5 +1,6 @@
 // 2415051059 - Syaeful Darmawan
 
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -31,9 +32,8 @@ class FavoritesTab extends StatelessWidget {
     final courseState = context.watch<CourseState>();
 
     // Filter course yang ada di favorites
-    final favoriteCourses = courses
-        .where((c) => courseState.isFavorite(c.code))
-        .toList();
+    final favoriteCourses =
+        courses.where((c) => courseState.isFavorite(c.code)).toList();
 
     return Scaffold(
       appBar: AppBar(

@@ -1,5 +1,3 @@
-// 2415051059 - Syaeful Darmawan
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -9,9 +7,6 @@ import '../widgets/common_widgets.dart';
 import '../widgets/course_card.dart';
 import 'course_detail_page.dart';
 
-// ============================================================
-// COMPACT — list + push ke detail
-// ============================================================
 class CoursesTab extends StatelessWidget {
   final List<Course> courses;
   final void Function(String code, {bool showFeedback}) onToggleFavorite;
@@ -33,7 +28,7 @@ class CoursesTab extends StatelessWidget {
     showDialog<void>(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text(course.name),
+        title: Text(course.title),
         content: Text(
           'Kode: ${course.code}\nSKS: ${course.credits}\nStatus: ${course.status}',
         ),
@@ -60,7 +55,7 @@ class CoursesTab extends StatelessWidget {
       context: context,
       builder: (_) => AlertDialog(
         title: const Text('Hapus dari Favorite?'),
-        content: Text('"${course.name}" akan dihapus dari daftar favorite.'),
+        content: Text('"${course.title}" akan dihapus dari daftar favorite.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -112,9 +107,6 @@ class CoursesTab extends StatelessWidget {
   }
 }
 
-// ============================================================
-// EXPANDED — master-detail
-// ============================================================
 class CoursesMasterDetail extends StatelessWidget {
   final List<Course> courses;
   final Course? selectedCourse;
@@ -203,7 +195,7 @@ class _DetailPanel extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  course.name,
+                  course.title,
                   style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -234,7 +226,7 @@ class _DetailPanel extends StatelessWidget {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Text(
-            'Mata kuliah ${course.name} dengan kode ${course.code} '
+            'Mata kuliah ${course.title} dengan kode ${course.code} '
             'berbobot ${course.credits} SKS. Status saat ini: ${course.status}.',
             style: const TextStyle(fontSize: 15, height: 1.5),
           ),

@@ -1,5 +1,3 @@
-// 2415051059 - Syaeful Darmawan
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -35,7 +33,7 @@ class _MainShellState extends State<MainShell> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            '"${course.name}" ${wasFav ? 'dihapus dari' : 'ditambahkan ke'} Favorite',
+            '"${course.title}" ${wasFav ? 'dihapus dari' : 'ditambahkan ke'} Favorite',
           ),
           duration: const Duration(seconds: 2),
           behavior: SnackBarBehavior.floating,
@@ -48,7 +46,6 @@ class _MainShellState extends State<MainShell> {
   Widget build(BuildContext context) {
     final provider = context.watch<CourseProvider>();
 
-    // -------- Loading --------
     if (provider.isLoading) {
       return const Scaffold(
         body: Center(
@@ -64,7 +61,6 @@ class _MainShellState extends State<MainShell> {
       );
     }
 
-    // -------- Error --------
     if (provider.error != null) {
       return Scaffold(
         appBar: AppBar(title: const Text('Course Explorer v2')),
@@ -100,7 +96,6 @@ class _MainShellState extends State<MainShell> {
       );
     }
 
-    // -------- Success --------
     final student = provider.student!;
     final courses = provider.courses;
 
@@ -108,12 +103,8 @@ class _MainShellState extends State<MainShell> {
       builder: (context, constraints) {
         final bool isExpanded = constraints.maxWidth >= 840;
 
-        // -------- Pages (4 tab) --------
         final pages = [
-          // 0: Home
           HomeTab(student: student, courses: courses),
-
-          // 1: Courses (compact: list, expanded: master-detail)
           isExpanded
               ? CoursesMasterDetail(
                   courses: courses,
@@ -125,14 +116,10 @@ class _MainShellState extends State<MainShell> {
                   courses: courses,
                   onToggleFavorite: _toggleFavorite,
                 ),
-
-          // 2: Favorites — hanya course yang difavoritkan
           FavoritesTab(
             courses: courses,
             onToggleFavorite: _toggleFavorite,
           ),
-
-          // 3: Profile
           ProfileTab(
             student: student,
             onClearFavorites: () {
@@ -147,7 +134,6 @@ class _MainShellState extends State<MainShell> {
           ),
         ];
 
-        // -------- EXPANDED: NavigationRail --------
         if (isExpanded) {
           return Scaffold(
             body: Row(
@@ -193,7 +179,6 @@ class _MainShellState extends State<MainShell> {
           );
         }
 
-        // -------- COMPACT: NavigationBar (4 tab) --------
         return Scaffold(
           body: IndexedStack(index: _currentIndex, children: pages),
           bottomNavigationBar: NavigationBar(

@@ -1,25 +1,20 @@
-// 2415051059 - Syaeful Darmawan
-// Widget-widget kecil yang dipakai lintas screen.
-
 import 'package:flutter/material.dart';
 import '../constants.dart';
 import '../models/course.dart';
 
-/// Helper status color global.
 MaterialColor statusColor(String status) {
   switch (status) {
     case 'Selesai':
+    case 'done':
       return Colors.green;
     case 'Sedang Dipelajari':
+    case 'active':
       return Colors.orange;
     default:
       return Colors.grey;
   }
 }
 
-// ============================================================
-// SUMMARY CARD
-// ============================================================
 class SummaryCard extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -63,9 +58,6 @@ class SummaryCard extends StatelessWidget {
   }
 }
 
-// ============================================================
-// CHIP PILL
-// ============================================================
 class ChipPill extends StatelessWidget {
   final IconData icon;
   final String text;
@@ -99,9 +91,6 @@ class ChipPill extends StatelessWidget {
   }
 }
 
-// ============================================================
-// PROFILE ITEM
-// ============================================================
 class ProfileItem extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -156,9 +145,6 @@ class ProfileItem extends StatelessWidget {
   }
 }
 
-// ============================================================
-// MINI COURSE TILE (preview di Home)
-// ============================================================
 class MiniCourseTile extends StatelessWidget {
   final Course course;
 
@@ -175,7 +161,7 @@ class MiniCourseTile extends StatelessWidget {
       ),
       child: ListTile(
         title: Text(
-          course.name,
+          course.title, // <-- Diperbaiki dari course.name
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
         ),
         subtitle: Text(
@@ -202,9 +188,6 @@ class MiniCourseTile extends StatelessWidget {
   }
 }
 
-// ============================================================
-// EMPTY DETAIL PLACEHOLDER (master-detail)
-// ============================================================
 class EmptyDetailPlaceholder extends StatelessWidget {
   const EmptyDetailPlaceholder({super.key});
 
@@ -228,9 +211,6 @@ class EmptyDetailPlaceholder extends StatelessWidget {
   }
 }
 
-// ============================================================
-// AVATAR (foto profil)
-// ============================================================
 class ProfileAvatar extends StatelessWidget {
   final double radius;
   final Color backgroundColor;

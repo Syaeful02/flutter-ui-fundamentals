@@ -1,31 +1,43 @@
 // 2415051059 - Syaeful Darmawan
 
 class Course {
+  final int? id;
   final String code;
-  final String name;
+  final String title;
   final int credits;
   final String status;
 
   const Course({
+    this.id,
     required this.code,
-    required this.name,
+    required this.title,
     required this.credits,
-    required this.status,
+    this.status = 'planned',
   });
 
-  /// Parsing dari Map JSON. Parsing dipusatkan di sini
-  /// supaya UI tidak lagi akses `map['key']` langsung.
   factory Course.fromJson(Map<String, dynamic> json) {
+    // Pemetaan dari JSONPlaceholder ke Model Course:
+    // title -> title
+    // body -> code (dipotong 6 karakter)
+    // userId -> credits
+    // status -> default 'planned'
     return Course(
-      code: json['code'] as String,
-      name: json['name'] as String,
-      credits: json['credits'] as int,
-      status: json['status'] as String,
+      id: json['id'] as int?,
+      code: json['body'] != null
+          ? (json['body'] as String).substring(0, 6).toUpperCase()
+          : 'UNKWN',
+      title: json['title'] as String,
+      credits: json['userId'] as int? ?? 0,
+      status: json['status'] as String? ?? 'planned',
     );
   }
 
-  /// Helper: status badge
-  bool get isSelesai => status == 'Selesai';
-  bool get isSedangDipelajari => status == 'Sedang Dipelajari';
-  bool get isBelum => status == 'Belum';
+  Map<String, dynamic> toJson() {
+    return {
+      'code': code,
+      'title': title,
+      'credits': credits,
+      'status': status,
+    };
+  }
 }
