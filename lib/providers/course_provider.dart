@@ -1,3 +1,5 @@
+// 2415051059 - Syaeful Darmawan
+
 import 'package:flutter/foundation.dart';
 import '../models/course.dart';
 import '../repositories/course_repository.dart';
@@ -11,9 +13,9 @@ class CourseProvider extends ChangeNotifier {
 
   List<Course> _courses = [];
   bool _isLoading = false;
+  bool _isSaving = false; // State untuk loading saat POST
   String? _error;
-  
-  // Tambahkan 'final' di sini
+
   final Map<String, dynamic>? _student = {
     'name': 'Syaeful Darmawan',
     'nim': '2415051059',
@@ -24,6 +26,7 @@ class CourseProvider extends ChangeNotifier {
 
   List<Course> get courses => _courses;
   bool get isLoading => _isLoading;
+  bool get isSaving => _isSaving;
   String? get error => _error;
   Map<String, dynamic>? get student => _student;
 
@@ -38,6 +41,24 @@ class CourseProvider extends ChangeNotifier {
       _error = e.toString();
     } finally {
       _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> createCourse(Course course) async {
+    _isSaving = true;
+    notifyListeners();
+
+    try {
+      await repository.createCourse(course);
+      // Refresh data setelah berhasil (sesuai instruksi no 40)
+      await loadCourses(); 
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      return false;
+    } finally {
+      _isSaving = false;
       notifyListeners();
     }
   }

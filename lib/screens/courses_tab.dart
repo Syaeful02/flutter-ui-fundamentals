@@ -1,3 +1,5 @@
+// 2415051059 - Syaeful Darmawan
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -6,6 +8,7 @@ import '../providers/course_state.dart';
 import '../widgets/common_widgets.dart';
 import '../widgets/course_card.dart';
 import 'course_detail_page.dart';
+import 'course_form_page.dart'; // <-- IMPORT HALAMAN FORM
 
 class CoursesTab extends StatelessWidget {
   final List<Course> courses;
@@ -21,6 +24,13 @@ class CoursesTab extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => CourseDetailPage(course: course)),
+    );
+  }
+
+  void _openForm(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const CourseFormPage()),
     );
   }
 
@@ -77,7 +87,17 @@ class CoursesTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Courses')),
+      appBar: AppBar(
+        title: const Text('Courses'),
+        actions: [
+          // TOMBOL TAMBAH DI SINI
+          IconButton(
+            icon: const Icon(Icons.add),
+            tooltip: 'Tambah Course',
+            onPressed: () => _openForm(context),
+          ),
+        ],
+      ),
       body: courses.isEmpty
           ? const Center(child: Text('Data course belum tersedia.'))
           : Consumer<CourseState>(
@@ -126,10 +146,27 @@ class CoursesMasterDetail extends StatelessWidget {
     required this.onToggleFavorite,
   });
 
+  void _openForm(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const CourseFormPage()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Courses (Master-Detail)')),
+      appBar: AppBar(
+        title: const Text('Courses (Master-Detail)'),
+        actions: [
+          // TOMBOL TAMBAH DI SINI JUGA (untuk Expanded)
+          IconButton(
+            icon: const Icon(Icons.add),
+            tooltip: 'Tambah Course',
+            onPressed: () => _openForm(context),
+          ),
+        ],
+      ),
       body: Row(
         children: [
           SizedBox(
