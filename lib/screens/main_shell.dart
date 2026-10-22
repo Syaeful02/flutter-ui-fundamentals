@@ -5,6 +5,7 @@ import '../models/course.dart';
 import '../providers/course_provider.dart';
 import '../providers/course_state.dart';
 import '../widgets/common_widgets.dart';
+import '../widgets/error_view.dart'; // Import ErrorView
 import 'courses_tab.dart';
 import 'favorites_tab.dart';
 import 'home_tab.dart';
@@ -46,6 +47,7 @@ class _MainShellState extends State<MainShell> {
   Widget build(BuildContext context) {
     final provider = context.watch<CourseProvider>();
 
+    // 1. LOADING STATE
     if (provider.isLoading) {
       return const Scaffold(
         body: Center(
@@ -61,41 +63,18 @@ class _MainShellState extends State<MainShell> {
       );
     }
 
+    // 2. ERROR STATE
     if (provider.error != null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Course Explorer v2')),
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.error_outline,
-                    size: 72, color: Colors.red),
-                const SizedBox(height: 16),
-                const Text(
-                  'Gagal memuat data',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  provider.error!,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.grey.shade700),
-                ),
-                const SizedBox(height: 20),
-                FilledButton.icon(
-                  onPressed: () => provider.loadCourses(),
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Coba Lagi'),
-                ),
-              ],
-            ),
-          ),
+        appBar: AppBar(title: const Text('Course Data Manager')),
+        body: ErrorView(
+          message: provider.error!,
+          onRetry: () => provider.loadCourses(),
         ),
       );
     }
 
+    // 3. SUCCESS STATE (Data kosong ditangani di tab masing-masing)
     final student = provider.student!;
     final courses = provider.courses;
 

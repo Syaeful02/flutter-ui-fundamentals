@@ -78,35 +78,40 @@ class CoursesTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Courses')),
-      body: Consumer<CourseState>(
-        builder: (context, courseState, _) {
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: courses.length,
-            itemBuilder: (context, i) {
-              final c = courses[i];
-              final isFav = courseState.isFavorite(c.code);
-              return CourseCard(
-                course: c,
-                isFavorite: isFav,
-                onTap: () => _openDetail(context, c),
-                onToggleFavorite: () {
-                  if (isFav) {
-                    _confirmRemoveFavorite(context, c);
-                  } else {
-                    onToggleFavorite(c.code);
-                  }
-                },
-                onLongPress: () => _showQuickInfo(context, c),
-              );
-            },
-          );
-        },
-      ),
+      body: courses.isEmpty
+          ? const Center(child: Text('Data course belum tersedia.'))
+          : Consumer<CourseState>(
+              builder: (context, courseState, _) {
+                return ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: courses.length,
+                  itemBuilder: (context, i) {
+                    final c = courses[i];
+                    final isFav = courseState.isFavorite(c.code);
+                    return CourseCard(
+                      course: c,
+                      isFavorite: isFav,
+                      onTap: () => _openDetail(context, c),
+                      onToggleFavorite: () {
+                        if (isFav) {
+                          _confirmRemoveFavorite(context, c);
+                        } else {
+                          onToggleFavorite(c.code);
+                        }
+                      },
+                      onLongPress: () => _showQuickInfo(context, c),
+                    );
+                  },
+                );
+              },
+            ),
     );
   }
 }
 
+// ============================================================
+// EXPANDED — Master-Detail
+// ============================================================
 class CoursesMasterDetail extends StatelessWidget {
   final List<Course> courses;
   final Course? selectedCourse;
@@ -129,27 +134,29 @@ class CoursesMasterDetail extends StatelessWidget {
         children: [
           SizedBox(
             width: 340,
-            child: Consumer<CourseState>(
-              builder: (context, courseState, _) {
-                return ListView.builder(
-                  padding: const EdgeInsets.all(12),
-                  itemCount: courses.length,
-                  itemBuilder: (context, i) {
-                    final c = courses[i];
-                    final isFav = courseState.isFavorite(c.code);
-                    final isSelected = selectedCourse?.code == c.code;
-                    return CourseCard(
-                      course: c,
-                      isFavorite: isFav,
-                      isSelected: isSelected,
-                      onTap: () => onSelect(c),
-                      onToggleFavorite: () => onToggleFavorite(c.code),
-                      onLongPress: () {},
-                    );
-                  },
-                );
-              },
-            ),
+            child: courses.isEmpty
+                ? const Center(child: Text('Data kosong'))
+                : Consumer<CourseState>(
+                    builder: (context, courseState, _) {
+                      return ListView.builder(
+                        padding: const EdgeInsets.all(12),
+                        itemCount: courses.length,
+                        itemBuilder: (context, i) {
+                          final c = courses[i];
+                          final isFav = courseState.isFavorite(c.code);
+                          final isSelected = selectedCourse?.code == c.code;
+                          return CourseCard(
+                            course: c,
+                            isFavorite: isFav,
+                            isSelected: isSelected,
+                            onTap: () => onSelect(c),
+                            onToggleFavorite: () => onToggleFavorite(c.code),
+                            onLongPress: () {},
+                          );
+                        },
+                      );
+                    },
+                  ),
           ),
           const VerticalDivider(width: 1),
           Expanded(

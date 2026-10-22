@@ -1,5 +1,3 @@
-// 2415051059 - Syaeful Darmawan
-
 import 'package:flutter/foundation.dart';
 import '../models/course.dart';
 import '../repositories/course_repository.dart';
@@ -15,8 +13,8 @@ class CourseProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
   
-  // Data dummy sementara karena tidak pakai JSON lokal lagi
-  Map<String, dynamic>? _student = {
+  // Tambahkan 'final' di sini
+  final Map<String, dynamic>? _student = {
     'name': 'Syaeful Darmawan',
     'nim': '2415051059',
     'program': 'Pendidikan Teknik Informatika',
