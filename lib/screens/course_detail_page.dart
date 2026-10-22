@@ -1,8 +1,10 @@
+// 2415051059 - Syaeful Darmawan
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/course.dart';
+import '../providers/course_provider.dart';
 import '../providers/course_state.dart';
 import '../widgets/common_widgets.dart';
 import 'course_form_page.dart';
@@ -12,12 +14,68 @@ class CourseDetailPage extends StatelessWidget {
 
   const CourseDetailPage({super.key, required this.course});
 
+  Future<void> _deleteCourse(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Hapus Course?'),
+        content: Text(
+            '"${course.title}" akan dihapus permanen dari database. Lanjutkan?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !context.mounted) return;
+
+    final provider = context.read<CourseProvider>();
+    final success = await provider.deleteCourse(course.id!);
+
+    if (!context.mounted) return;
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Course berhasil dihapus'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      Navigator.pop(context); // Kembali ke list
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal menghapus: ${provider.error}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final color = statusColor(course.status);
+    final isSaving = context.watch<CourseProvider>().isSaving;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Course Detail')),
+      appBar: AppBar(
+        title: const Text('Course Detail'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete, color: Colors.red),
+            tooltip: 'Hapus Course',
+            onPressed: isSaving ? null : () => _deleteCourse(context),
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -61,23 +119,15 @@ class CourseDetailPage extends StatelessWidget {
                         text: '${course.credits} SKS',
                       ),
                       const SizedBox(width: 8),
-                      ChipPill(
-                        icon: Icons.info_outline,
-                        text: course.status,
-                      ),
+                      ChipPill(icon: Icons.info_outline, text: course.status),
                     ],
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
-              'Deskripsi',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            const Text('Deskripsi',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             Text(
               'Mata kuliah ${course.title} dengan kode ${course.code} '
@@ -87,35 +137,30 @@ class CourseDetailPage extends StatelessWidget {
             const SizedBox(height: 28),
             const Divider(),
             const SizedBox(height: 12),
-            const Text(
-              'Informasi Mahasiswa',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            const Text('Informasi Mahasiswa',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             const Text('Syaeful Darmawan'),
             const Text('NIM: 2415051059'),
             const Text('Pendidikan Teknik Informatika'),
             const Text('Universitas Pendidikan Ganesha'),
-
-            // Tombol Edit dan Favorite
             const SizedBox(height: 32),
 
             Row(
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) =>
-                              CourseFormPage(initialCourse: course),
-                        ),
-                      );
-                    },
+                    onPressed: isSaving
+                        ? null
+                        : () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    CourseFormPage(initialCourse: course),
+                              ),
+                            );
+                          },
                     icon: const Icon(Icons.edit),
                     label: const Text('Edit'),
                   ),
@@ -124,31 +169,23 @@ class CourseDetailPage extends StatelessWidget {
                 Expanded(
                   child: Consumer<CourseState>(
                     builder: (context, courseState, _) {
-                      final isFav =
-                          courseState.isFavorite(course.code);
-
+                      final isFav = courseState.isFavorite(course.code);
                       return FilledButton.icon(
-                        onPressed: () {
-                          context
-                              .read<CourseState>()
-                              .toggleFavorite(course.code);
-                          Navigator.pop(context, true);
-                        },
+                        onPressed: isSaving
+                            ? null
+                            : () {
+                                context
+                                    .read<CourseState>()
+                                    .toggleFavorite(course.code);
+                                Navigator.pop(context, true);
+                              },
                         style: FilledButton.styleFrom(
-                          backgroundColor:
-                              isFav ? Colors.grey : Colors.red,
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 14,
-                          ),
+                          backgroundColor: isFav ? Colors.grey : Colors.red,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
                         ),
                         icon: Icon(
-                          isFav
-                              ? Icons.favorite
-                              : Icons.favorite_border,
-                        ),
-                        label: Text(
-                          isFav ? 'Hapus Fav' : 'Favorite',
-                        ),
+                            isFav ? Icons.favorite : Icons.favorite_border),
+                        label: Text(isFav ? 'Hapus Fav' : 'Favorite'),
                       );
                     },
                   ),
