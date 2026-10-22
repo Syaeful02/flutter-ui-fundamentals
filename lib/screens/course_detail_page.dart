@@ -1,9 +1,11 @@
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/course.dart';
 import '../providers/course_state.dart';
 import '../widgets/common_widgets.dart';
+import 'course_form_page.dart';
 
 class CourseDetailPage extends StatelessWidget {
   final Course course;
@@ -59,15 +61,23 @@ class CourseDetailPage extends StatelessWidget {
                         text: '${course.credits} SKS',
                       ),
                       const SizedBox(width: 8),
-                      ChipPill(icon: Icons.info_outline, text: course.status),
+                      ChipPill(
+                        icon: Icons.info_outline,
+                        text: course.status,
+                      ),
                     ],
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 24),
-            const Text('Deskripsi',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text(
+              'Deskripsi',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             const SizedBox(height: 8),
             Text(
               'Mata kuliah ${course.title} dengan kode ${course.code} '
@@ -77,44 +87,79 @@ class CourseDetailPage extends StatelessWidget {
             const SizedBox(height: 28),
             const Divider(),
             const SizedBox(height: 12),
-            const Text('Informasi Mahasiswa',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const Text(
+              'Informasi Mahasiswa',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             const SizedBox(height: 8),
             const Text('Syaeful Darmawan'),
             const Text('NIM: 2415051059'),
             const Text('Pendidikan Teknik Informatika'),
             const Text('Universitas Pendidikan Ganesha'),
+
+            // Tombol Edit dan Favorite
             const SizedBox(height: 32),
 
-            Consumer<CourseState>(
-              builder: (context, courseState, _) {
-                final isFav = courseState.isFavorite(course.code);
-                return SizedBox(
-                  width: double.infinity,
-                  child: FilledButton.icon(
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
                     onPressed: () {
-                      context
-                          .read<CourseState>()
-                          .toggleFavorite(course.code);
-                      Navigator.pop(context, true);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              CourseFormPage(initialCourse: course),
+                        ),
+                      );
                     },
-                    style: FilledButton.styleFrom(
-                      backgroundColor: isFav ? Colors.grey : Colors.red,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                    icon: Icon(isFav ? Icons.favorite : Icons.favorite_border),
-                    label: Text(
-                      isFav ? 'Hapus dari Favorit' : 'Pilih / Favoritkan',
-                    ),
+                    icon: const Icon(Icons.edit),
+                    label: const Text('Edit'),
                   ),
-                );
-              },
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Consumer<CourseState>(
+                    builder: (context, courseState, _) {
+                      final isFav =
+                          courseState.isFavorite(course.code);
+
+                      return FilledButton.icon(
+                        onPressed: () {
+                          context
+                              .read<CourseState>()
+                              .toggleFavorite(course.code);
+                          Navigator.pop(context, true);
+                        },
+                        style: FilledButton.styleFrom(
+                          backgroundColor:
+                              isFav ? Colors.grey : Colors.red,
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 14,
+                          ),
+                        ),
+                        icon: Icon(
+                          isFav
+                              ? Icons.favorite
+                              : Icons.favorite_border,
+                        ),
+                        label: Text(
+                          isFav ? 'Hapus Fav' : 'Favorite',
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
 
             const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
-              child: OutlinedButton.icon(
+              child: TextButton.icon(
                 onPressed: () => Navigator.pop(context),
                 icon: const Icon(Icons.arrow_back),
                 label: const Text('Kembali'),

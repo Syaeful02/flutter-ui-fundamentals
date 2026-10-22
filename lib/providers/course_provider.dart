@@ -13,7 +13,7 @@ class CourseProvider extends ChangeNotifier {
 
   List<Course> _courses = [];
   bool _isLoading = false;
-  bool _isSaving = false; // State untuk loading saat POST
+  bool _isSaving = false;
   String? _error;
 
   final Map<String, dynamic>? _student = {
@@ -48,11 +48,32 @@ class CourseProvider extends ChangeNotifier {
   Future<bool> createCourse(Course course) async {
     _isSaving = true;
     notifyListeners();
-
     try {
       await repository.createCourse(course);
-      // Refresh data setelah berhasil (sesuai instruksi no 40)
-      await loadCourses(); 
+      await loadCourses();
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      return false;
+    } finally {
+      _isSaving = false;
+      notifyListeners();
+    }
+  }
+
+  // METHOD BARU UNTUK UPDATE
+  Future<bool> updateCourse(Course course) async {
+    if (course.id == null) {
+      _error = 'ID Course tidak ditemukan';
+      notifyListeners();
+      return false;
+    }
+
+    _isSaving = true;
+    notifyListeners();
+    try {
+      await repository.updateCourse(course.id!, course);
+      await loadCourses();
       return true;
     } catch (e) {
       _error = e.toString();
