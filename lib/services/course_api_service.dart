@@ -3,12 +3,15 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/course.dart';
+import 'course_data_source.dart'; // <-- Tambah import
 
-class CourseApiService {
+// Implementasikan interface
+class CourseApiService implements CourseDataSource {
   final String baseUrl;
 
   CourseApiService(this.baseUrl);
 
+  @override
   Future<List<Course>> getCourses() async {
     final response = await http.get(Uri.parse('$baseUrl/posts'));
     if (response.statusCode != 200) {
@@ -18,6 +21,7 @@ class CourseApiService {
     return data.map((e) => Course.fromJson(e as Map<String, dynamic>)).toList();
   }
 
+  @override
   Future<Course> createCourse(Course course) async {
     final response = await http.post(
       Uri.parse('$baseUrl/posts'),
@@ -43,7 +47,7 @@ class CourseApiService {
     }
   }
 
-  // METHOD BARU UNTUK UPDATE (PUT)
+  @override
   Future<void> updateCourse(int id, Course course) async {
     final response = await http.put(
       Uri.parse('$baseUrl/posts/$id'),
@@ -61,13 +65,9 @@ class CourseApiService {
     }
   }
 
-  // Tambahkan di dalam class CourseApiService
-
+  @override
   Future<void> deleteCourse(int id) async {
-    final response = await http.delete(
-      Uri.parse('$baseUrl/posts/$id'),
-    );
-
+    final response = await http.delete(Uri.parse('$baseUrl/posts/$id'));
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw Exception('Gagal menghapus course. HTTP ${response.statusCode}');
     }

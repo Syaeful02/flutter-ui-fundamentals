@@ -1,27 +1,16 @@
 // 2415051059 - Syaeful Darmawan
 
 import '../models/course.dart';
-import '../services/course_api_service.dart';
+import '../services/course_data_source.dart'; // <-- Ganti import
 
 class CourseRepository {
-  final CourseApiService _apiService;
+  // Gunakan abstraksi, bukan class konkret
+  final CourseDataSource _dataSource;
 
-  CourseRepository(this._apiService);
+  CourseRepository(this._dataSource);
 
-  Future<List<Course>> getCourses() async {
-    return await _apiService.getCourses();
-  }
-
-  Future<Course> createCourse(Course course) async {
-    return await _apiService.createCourse(course);
-  }
-
-  Future<void> updateCourse(int id, Course course) async {
-    return await _apiService.updateCourse(id, course);
-  }
-
-  // Tambahan method DELETE
-  Future<void> deleteCourse(int id) async {
-    return await _apiService.deleteCourse(id);
-  }
+  Future<List<Course>> getCourses() => _dataSource.getCourses();
+  Future<Course> createCourse(Course course) => _dataSource.createCourse(course);
+  Future<void> updateCourse(int id, Course course) => _dataSource.updateCourse(id, course);
+  Future<void> deleteCourse(int id) => _dataSource.deleteCourse(id);
 }
