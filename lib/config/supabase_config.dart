@@ -1,4 +1,4 @@
 // 2415051059 - Syaeful Darmawan
 
-const String supabaseUrl = 'ISI_PROJECT_URL_DISINI';
-const String supabaseAnonKey = 'ISI_ANON_KEY_DISINI';
+const String supabaseUrl = 'https://wvrtaxxvdyupivgqqrsk.supabase.co';
+const String supabaseAnonKey = 'sb_publishable_PkvlKuTmAHr8CozvOQGVZw_nFpviNtB';

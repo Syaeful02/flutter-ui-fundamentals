@@ -1,13 +1,25 @@
 // 2415051059 - Syaeful Darmawan
 
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/course.dart';
 import 'course_data_source.dart';
 
 class CourseSupabaseService implements CourseDataSource {
+  // Mengambil instance Supabase yang sudah diinisialisasi di main.dart
+  final supabase = Supabase.instance.client;
+
   @override
   Future<List<Course>> getCourses() async {
-    // Akan diimplementasikan di Tahap 12
-    throw UnimplementedError('Belum diimplementasikan');
+    // Melakukan SELECT * FROM courses ORDER BY id
+    final data = await supabase
+        .from('courses')
+        .select()
+        .order('id', ascending: true);
+
+    // Konversi response menjadi List<Course>
+    return (data as List)
+        .map((e) => Course.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   @override
