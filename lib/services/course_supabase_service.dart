@@ -37,20 +37,22 @@ class CourseSupabaseService implements CourseDataSource {
 
   @override
   Future<void> updateCourse(int id, Course course) async {
-    // UPDATE data di tabel courses berdasarkan ID
     await supabase
         .from('courses')
         .update({
           'title': course.title,
           'credits': course.credits,
           'status': course.status,
-          // 'code' tidak di-update karena berfungsi sebagai kunci (read-only)
         })
         .eq('id', id);
   }
 
   @override
   Future<void> deleteCourse(int id) async {
-    throw UnimplementedError('Belum diimplementasikan');
+    // DELETE data dari tabel courses berdasarkan ID
+    await supabase
+        .from('courses')
+        .delete()
+        .eq('id', id);
   }
 }
