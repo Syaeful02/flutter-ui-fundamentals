@@ -16,7 +16,6 @@ class Course {
   });
 
   factory Course.fromJson(Map<String, dynamic> json) {
-    // SEKARANG KITA MEMBACA FIELD YANG BENAR DARI SUPABASE
     return Course(
       id: json['id'] as int?,
       code: json['code'] as String? ?? 'UNKNOWN',
