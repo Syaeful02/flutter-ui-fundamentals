@@ -5,18 +5,15 @@ import '../models/course.dart';
 import 'course_data_source.dart';
 
 class CourseSupabaseService implements CourseDataSource {
-  // Mengambil instance Supabase yang sudah diinisialisasi di main.dart
   final supabase = Supabase.instance.client;
 
   @override
   Future<List<Course>> getCourses() async {
-    // Melakukan SELECT * FROM courses ORDER BY id
     final data = await supabase
         .from('courses')
         .select()
         .order('id', ascending: true);
 
-    // Konversi response menjadi List<Course>
     return (data as List)
         .map((e) => Course.fromJson(e as Map<String, dynamic>))
         .toList();
@@ -24,8 +21,20 @@ class CourseSupabaseService implements CourseDataSource {
 
   @override
   Future<Course> createCourse(Course course) async {
-    // Akan diimplementasikan di Tahap 13
-    throw UnimplementedError('Belum diimplementasikan');
+    // INSERT data ke tabel courses
+    final response = await supabase
+        .from('courses')
+        .insert({
+          'code': course.code,
+          'title': course.title,
+          'credits': course.credits,
+          'status': course.status,
+        })
+        .select() // Minta Supabase mengembalikan data yang baru di-insert
+        .single(); // Ambil satu baris (object), bukan list
+
+    // Konversi response (Map) kembali ke model Course
+    return Course.fromJson(response);
   }
 
   @override
