@@ -16,18 +16,12 @@ class Course {
   });
 
   factory Course.fromJson(Map<String, dynamic> json) {
-    // Pemetaan dari JSONPlaceholder ke Model Course:
-    // title -> title
-    // body -> code (dipotong 6 karakter)
-    // userId -> credits
-    // status -> default 'planned'
+    // SEKARANG KITA MEMBACA FIELD YANG BENAR DARI SUPABASE
     return Course(
       id: json['id'] as int?,
-      code: json['body'] != null
-          ? (json['body'] as String).substring(0, 6).toUpperCase()
-          : 'UNKWN',
-      title: json['title'] as String,
-      credits: json['userId'] as int? ?? 0,
+      code: json['code'] as String? ?? 'UNKNOWN',
+      title: json['title'] as String? ?? 'Tanpa Judul',
+      credits: json['credits'] as int? ?? 0,
       status: json['status'] as String? ?? 'planned',
     );
   }
