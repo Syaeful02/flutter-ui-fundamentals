@@ -1,4 +1,3 @@
-// 2415051059 - Syaeful Darmawan
 
 import 'package:flutter/foundation.dart';
 import '../models/course.dart';
