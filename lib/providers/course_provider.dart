@@ -1,19 +1,24 @@
+// 2415051059 - Syaeful Darmawan
 
 import 'package:flutter/foundation.dart';
 import '../models/course.dart';
+import '../models/user_profile.dart';
 import '../repositories/course_repository.dart';
+import '../services/profile_service.dart';
 
 class CourseProvider extends ChangeNotifier {
   final CourseRepository repository;
 
   CourseProvider(this.repository) {
     loadCourses();
+    loadProfile(); // Ambil data profil saat aplikasi dimuat
   }
 
   List<Course> _courses = [];
   bool _isLoading = false;
   bool _isSaving = false;
   String? _error;
+  UserProfile? _currentUserProfile;
 
   final Map<String, dynamic>? _student = {
     'name': 'Syaeful Darmawan',
@@ -28,6 +33,12 @@ class CourseProvider extends ChangeNotifier {
   bool get isSaving => _isSaving;
   String? get error => _error;
   Map<String, dynamic>? get student => _student;
+  UserProfile? get currentUserProfile => _currentUserProfile;
+
+  Future<void> loadProfile() async {
+    _currentUserProfile = await ProfileService().getMyProfile();
+    notifyListeners();
+  }
 
   Future<void> loadCourses() async {
     _isLoading = true;
@@ -60,7 +71,6 @@ class CourseProvider extends ChangeNotifier {
     }
   }
 
-  // METHOD BARU UNTUK UPDATE
   Future<bool> updateCourse(Course course) async {
     if (course.id == null) {
       _error = 'ID Course tidak ditemukan';
@@ -83,14 +93,12 @@ class CourseProvider extends ChangeNotifier {
     }
   }
 
-  // Tambahkan di dalam class CourseProvider
-
   Future<bool> deleteCourse(int id) async {
     _isSaving = true;
     notifyListeners();
     try {
       await repository.deleteCourse(id);
-      await loadCourses(); // Refresh list setelah hapus
+      await loadCourses();
       return true;
     } catch (e) {
       _error = e.toString();

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/course.dart';
-import '../providers/course_provider.dart';
+import '../providers/course_provider.dart'; // Import CourseProvider
 import '../providers/course_state.dart';
 import '../widgets/common_widgets.dart';
 import 'course_form_page.dart';
@@ -49,7 +49,7 @@ class CourseDetailPage extends StatelessWidget {
           backgroundColor: Colors.green,
         ),
       );
-      Navigator.pop(context); // Kembali ke list
+      Navigator.pop(context);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -64,16 +64,22 @@ class CourseDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = statusColor(course.status);
     final isSaving = context.watch<CourseProvider>().isSaving;
+    
+    // CEK ROLE
+    final profile = context.watch<CourseProvider>().currentUserProfile;
+    final isOwnerOrAdmin = profile?.isOwner == true || profile?.isAdmin == true;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Course Detail'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.delete, color: Colors.red),
-            tooltip: 'Hapus Course',
-            onPressed: isSaving ? null : () => _deleteCourse(context),
-          ),
+          // TOMBOL HAPUS HANYA UNTUK OWNER/ADMIN
+          if (isOwnerOrAdmin)
+            IconButton(
+              icon: const Icon(Icons.delete, color: Colors.red),
+              tooltip: 'Hapus Course',
+              onPressed: isSaving ? null : () => _deleteCourse(context),
+            ),
         ],
       ),
       body: SingleChildScrollView(
@@ -148,24 +154,28 @@ class CourseDetailPage extends StatelessWidget {
 
             Row(
               children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: isSaving
-                        ? null
-                        : () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    CourseFormPage(initialCourse: course),
-                              ),
-                            );
-                          },
-                    icon: const Icon(Icons.edit),
-                    label: const Text('Edit'),
+                // TOMBOL EDIT HANYA UNTUK OWNER/ADMIN
+                if (isOwnerOrAdmin)
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: isSaving
+                          ? null
+                          : () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      CourseFormPage(initialCourse: course),
+                                ),
+                              );
+                            },
+                      icon: const Icon(Icons.edit),
+                      label: const Text('Edit'),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
+                if (isOwnerOrAdmin) const SizedBox(width: 12),
+                
+                // Tombol Favorite tetap ada untuk semua role
                 Expanded(
                   child: Consumer<CourseState>(
                     builder: (context, courseState, _) {

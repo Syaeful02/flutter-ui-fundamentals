@@ -4,11 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/course.dart';
+import '../providers/course_provider.dart'; // Import CourseProvider
 import '../providers/course_state.dart';
 import '../widgets/common_widgets.dart';
 import '../widgets/course_card.dart';
 import 'course_detail_page.dart';
-import 'course_form_page.dart'; // <-- IMPORT HALAMAN FORM
+import 'course_form_page.dart';
 
 class CoursesTab extends StatelessWidget {
   final List<Course> courses;
@@ -86,16 +87,21 @@ class CoursesTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // CEK ROLE PENGGUNA
+    final profile = context.watch<CourseProvider>().currentUserProfile;
+    final isOwnerOrAdmin = profile?.isOwner == true || profile?.isAdmin == true;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Courses'),
         actions: [
-          // TOMBOL TAMBAH DI SINI
-          IconButton(
-            icon: const Icon(Icons.add),
-            tooltip: 'Tambah Course',
-            onPressed: () => _openForm(context),
-          ),
+          // TOMBOL TAMBAH HANYA UNTUK OWNER/ADMIN
+          if (isOwnerOrAdmin)
+            IconButton(
+              icon: const Icon(Icons.add),
+              tooltip: 'Tambah Course',
+              onPressed: () => _openForm(context),
+            ),
         ],
       ),
       body: courses.isEmpty
@@ -155,16 +161,19 @@ class CoursesMasterDetail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final profile = context.watch<CourseProvider>().currentUserProfile;
+    final isOwnerOrAdmin = profile?.isOwner == true || profile?.isAdmin == true;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Courses (Master-Detail)'),
         actions: [
-          // TOMBOL TAMBAH DI SINI JUGA (untuk Expanded)
-          IconButton(
-            icon: const Icon(Icons.add),
-            tooltip: 'Tambah Course',
-            onPressed: () => _openForm(context),
-          ),
+          if (isOwnerOrAdmin)
+            IconButton(
+              icon: const Icon(Icons.add),
+              tooltip: 'Tambah Course',
+              onPressed: () => _openForm(context),
+            ),
         ],
       ),
       body: Row(

@@ -15,10 +15,13 @@ class AuthService {
   Future<AuthResponse> register({
     required String email,
     required String password,
+    String name = '',
+    String role = 'seeker', // 'seeker' atau 'owner'
   }) {
     return _client.auth.signUp(
       email: email,
       password: password,
+      data: {'name': name, 'role': role}, // Dibaca oleh trigger di Supabase
     );
   }
 
@@ -26,10 +29,7 @@ class AuthService {
     required String email,
     required String password,
   }) {
-    return _client.auth.signInWithPassword(
-      email: email,
-      password: password,
-    );
+    return _client.auth.signInWithPassword(email: email, password: password);
   }
 
   Future<void> logout() => _client.auth.signOut();
