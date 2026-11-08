@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/course.dart';
-import '../providers/course_provider.dart'; // Import CourseProvider
+import '../providers/course_provider.dart';
 import '../providers/course_state.dart';
 import '../widgets/common_widgets.dart';
 import '../widgets/course_card.dart';
@@ -87,16 +87,16 @@ class CoursesTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // CEK ROLE PENGGUNA
+    // CEK ROLE
     final profile = context.watch<CourseProvider>().currentUserProfile;
-    final isOwnerOrAdmin = profile?.isOwner == true || profile?.isAdmin == true;
+    final canAdd = profile?.role == 'owner' || profile?.role == 'admin';
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Courses'),
         actions: [
-          // TOMBOL TAMBAH HANYA UNTUK OWNER/ADMIN
-          if (isOwnerOrAdmin)
+          // TOMBOL HANYA MUNCUL UNTUK OWNER/ADMIN
+          if (canAdd)
             IconButton(
               icon: const Icon(Icons.add),
               tooltip: 'Tambah Course',
@@ -162,13 +162,13 @@ class CoursesMasterDetail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final profile = context.watch<CourseProvider>().currentUserProfile;
-    final isOwnerOrAdmin = profile?.isOwner == true || profile?.isAdmin == true;
+    final canAdd = profile?.role == 'owner' || profile?.role == 'admin';
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Courses (Master-Detail)'),
         actions: [
-          if (isOwnerOrAdmin)
+          if (canAdd)
             IconButton(
               icon: const Icon(Icons.add),
               tooltip: 'Tambah Course',

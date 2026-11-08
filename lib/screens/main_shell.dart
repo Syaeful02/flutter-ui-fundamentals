@@ -75,7 +75,7 @@ class _MainShellState extends State<MainShell> {
     }
 
     // 3. SUCCESS STATE (Data kosong ditangani di tab masing-masing)
-    final student = provider.student!;
+    final student = provider.student;
     final courses = provider.courses;
 
     return LayoutBuilder(

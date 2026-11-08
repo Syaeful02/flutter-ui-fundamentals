@@ -4,10 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/course.dart';
-import '../providers/course_provider.dart'; // Import CourseProvider
+import '../providers/course_provider.dart';
 import '../providers/course_state.dart';
 import '../widgets/common_widgets.dart';
 import 'course_form_page.dart';
+import '../services/auth_service.dart';
 
 class CourseDetailPage extends StatelessWidget {
   final Course course;
@@ -65,16 +66,19 @@ class CourseDetailPage extends StatelessWidget {
     final color = statusColor(course.status);
     final isSaving = context.watch<CourseProvider>().isSaving;
     
-    // CEK ROLE
+    // CEK ROLE & KEPEMILIKAN DATA
     final profile = context.watch<CourseProvider>().currentUserProfile;
-    final isOwnerOrAdmin = profile?.isOwner == true || profile?.isAdmin == true;
+    final currentUserId = AuthService.instance.currentUser?.id;
+    final isMyCourse = course.ownerId == currentUserId;
+    
+    // Seeker tidak bisa apa-apa. Admin bisa semua. Owner hanya bisa miliknya.
+    final canEdit = profile?.role == 'admin' || (profile?.role == 'owner' && isMyCourse);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Course Detail'),
         actions: [
-          // TOMBOL HAPUS HANYA UNTUK OWNER/ADMIN
-          if (isOwnerOrAdmin)
+          if (canEdit)
             IconButton(
               icon: const Icon(Icons.delete, color: Colors.red),
               tooltip: 'Hapus Course',
@@ -154,8 +158,8 @@ class CourseDetailPage extends StatelessWidget {
 
             Row(
               children: [
-                // TOMBOL EDIT HANYA UNTUK OWNER/ADMIN
-                if (isOwnerOrAdmin)
+                // TOMBOL EDIT
+                if (canEdit)
                   Expanded(
                     child: OutlinedButton.icon(
                       onPressed: isSaving
@@ -173,9 +177,9 @@ class CourseDetailPage extends StatelessWidget {
                       label: const Text('Edit'),
                     ),
                   ),
-                if (isOwnerOrAdmin) const SizedBox(width: 12),
+                if (canEdit) const SizedBox(width: 12),
                 
-                // Tombol Favorite tetap ada untuk semua role
+                // TOMBOL FAVORITE (Semua Role bisa akses)
                 Expanded(
                   child: Consumer<CourseState>(
                     builder: (context, courseState, _) {

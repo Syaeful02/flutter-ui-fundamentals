@@ -6,6 +6,7 @@ class Course {
   final String title;
   final int credits;
   final String status;
+  final String? ownerId; // <-- TAMBAHKAN INI
 
   const Course({
     this.id,
@@ -13,6 +14,7 @@ class Course {
     required this.title,
     required this.credits,
     this.status = 'planned',
+    this.ownerId, // <-- TAMBAHKAN INI
   });
 
   factory Course.fromJson(Map<String, dynamic> json) {
@@ -22,6 +24,7 @@ class Course {
       title: json['title'] as String? ?? 'Tanpa Judul',
       credits: json['credits'] as int? ?? 0,
       status: json['status'] as String? ?? 'planned',
+      ownerId: json['owner_id'] as String?, // <-- TAMBAHKAN INI
     );
   }
 

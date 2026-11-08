@@ -11,7 +11,7 @@ class CourseProvider extends ChangeNotifier {
 
   CourseProvider(this.repository) {
     loadCourses();
-    loadProfile(); // Ambil data profil saat aplikasi dimuat
+    loadProfile();
   }
 
   List<Course> _courses = [];
@@ -20,7 +20,7 @@ class CourseProvider extends ChangeNotifier {
   String? _error;
   UserProfile? _currentUserProfile;
 
-  final Map<String, dynamic>? _student = {
+  final Map<String, dynamic> _student = {
     'name': 'Syaeful Darmawan',
     'nim': '2415051059',
     'program': 'Pendidikan Teknik Informatika',
@@ -32,11 +32,18 @@ class CourseProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get isSaving => _isSaving;
   String? get error => _error;
-  Map<String, dynamic>? get student => _student;
+  Map<String, dynamic> get student => _student;
   UserProfile? get currentUserProfile => _currentUserProfile;
 
   Future<void> loadProfile() async {
     _currentUserProfile = await ProfileService().getMyProfile();
+    notifyListeners();
+  }
+
+  // TAMBAHKAN METHOD INI UNTUK LOGOUT
+  void clearProfile() {
+    _currentUserProfile = null;
+    _courses = [];
     notifyListeners();
   }
 

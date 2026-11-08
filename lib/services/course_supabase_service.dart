@@ -21,6 +21,9 @@ class CourseSupabaseService implements CourseDataSource {
 
   @override
   Future<Course> createCourse(Course course) async {
+    final userId = supabase.auth.currentUser?.id;
+    if (userId == null) throw Exception('User belum login');
+
     final response = await supabase
         .from('courses')
         .insert({
@@ -28,6 +31,7 @@ class CourseSupabaseService implements CourseDataSource {
           'title': course.title,
           'credits': course.credits,
           'status': course.status,
+          'owner_id': userId, // <-- PASTIKAN INI ADA
         })
         .select()
         .single();
@@ -49,7 +53,6 @@ class CourseSupabaseService implements CourseDataSource {
 
   @override
   Future<void> deleteCourse(int id) async {
-    // DELETE data dari tabel courses berdasarkan ID
     await supabase
         .from('courses')
         .delete()
