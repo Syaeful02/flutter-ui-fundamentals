@@ -1,15 +1,14 @@
 // 2415051059 - Syaeful Darmawan
 
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:http/http.dart' as http;
 
-import '../constants.dart';
 import '../models/course.dart';
 import '../providers/course_state.dart';
 import '../widgets/common_widgets.dart';
 import '../widgets/counter_demo.dart';
+import '../services/auth_service.dart'; // Import AuthService
+import 'login_page.dart'; // Import LoginPage
 
 class HomeTab extends StatefulWidget {
   final Map<String, dynamic> student;
@@ -24,32 +23,14 @@ class HomeTab extends StatefulWidget {
 class _HomeTabState extends State<HomeTab> {
   bool _showSummary = true;
 
-  // State sementara untuk Tahap 2 (HTTP GET)
-  List<Course>? _apiCourses;
-  bool _isFetching = false;
-
-  Future<void> _fetchApiData() async {
-    setState(() => _isFetching = true);
-    try {
-      final response = await http.get(Uri.parse('$apiBaseUrl/posts'));
-      if (response.statusCode == 200) {
-        final List data = jsonDecode(response.body) as List;
-        setState(() {
-          // Ambil 3 data pertama dan konversi ke Model Course
-          _apiCourses = data.take(3).map((e) => Course.fromJson(e)).toList();
-        });
-      } else {
-        throw Exception('HTTP ${response.statusCode}');
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
-      }
-    } finally {
-      setState(() => _isFetching = false);
-    }
+  // Fungsi untuk Logout
+  Future<void> _logout() async {
+    await AuthService.instance.logout();
+    if (!mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginPage()),
+      (route) => false,
+    );
   }
 
   @override
@@ -58,10 +39,17 @@ class _HomeTabState extends State<HomeTab> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Course Explorer v2'),
+        title: const Text('Course Data Manager'),
         actions: [
+          // --- TOMBOL LOGOUT ---
           IconButton(
-            tooltip: _showSummary ? 'Sembunyikan' : 'Tampilkan',
+            tooltip: 'Logout',
+            icon: const Icon(Icons.logout),
+            onPressed: _logout,
+          ),
+          // --- TOMBOL SEMBUNYIKAN SUMMARY ---
+          IconButton(
+            tooltip: _showSummary ? 'Sembunyikan summary' : 'Tampilkan summary',
             icon: Icon(
               _showSummary ? Icons.visibility_off : Icons.visibility,
             ),
@@ -72,7 +60,7 @@ class _HomeTabState extends State<HomeTab> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Header identitas
+          // --- HEADER IDENTITAS ---
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(20),
@@ -118,27 +106,11 @@ class _HomeTabState extends State<HomeTab> {
           ),
           const SizedBox(height: 20),
 
+          // --- DEMO VALUE NOTIFIER DARI P6 ---
           const CounterDemo(),
           const SizedBox(height: 20),
 
-          // === Bagian Uji Coba Tahap 2 ===
-          ElevatedButton.icon(
-            onPressed: _isFetching ? null : _fetchApiData,
-            icon: const Icon(Icons.download),
-            label: Text(_isFetching ? 'Menarik data...' : 'Uji GET API (Preview)'),
-          ),
-          if (_apiCourses != null) ...[
-            const SizedBox(height: 12),
-            const Text('Preview Data API:', style: TextStyle(fontWeight: FontWeight.bold)),
-            ..._apiCourses!.map((c) => ListTile(
-                  title: Text(c.title.length > 30 ? '${c.title.substring(0, 30)}...' : c.title),
-                  subtitle: Text('Code: ${c.code} | SKS: ${c.credits}'),
-                )),
-          ],
-          // ==============================
-
-          const SizedBox(height: 20),
-
+          // --- SUMMARY CARD (Favorit & Total) ---
           if (_showSummary) ...[
             Row(
               children: [
@@ -186,6 +158,7 @@ class _HomeTabState extends State<HomeTab> {
             const SizedBox(height: 24),
           ],
 
+          // --- SEARCH BAR (Visual) ---
           TextField(
             decoration: InputDecoration(
               hintText: 'Search courses...',
@@ -200,6 +173,8 @@ class _HomeTabState extends State<HomeTab> {
             ),
           ),
           const SizedBox(height: 16),
+
+          // --- PREVIEW 3 COURSE TERBARU ---
           const Text(
             'Aktif / Terbaru',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
