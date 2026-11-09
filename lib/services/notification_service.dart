@@ -1,7 +1,10 @@
 // 2415051059 - Syaeful Darmawan
 
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/material.dart'; // <-- IMPORT INI DITAMBAHKAN
 import 'package:flutter/foundation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../app_keys.dart'; // Import messengerKey
 
 class NotificationService {
   NotificationService._();
@@ -9,31 +12,26 @@ class NotificationService {
 
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
 
-  /// Meminta izin notifikasi dan mengembalikan statusnya
   Future<AuthorizationStatus> requestPermission() async {
     final settings = await _messaging.requestPermission(
       alert: true,
       badge: true,
       sound: true,
     );
-
-    debugPrint('====================================');
     debugPrint('Status Izin Notifikasi: ${settings.authorizationStatus.name}');
-    debugPrint('====================================');
-    
     return settings.authorizationStatus;
   }
 
-  /// Inisialisasi lengkap (Izin + Token + Listener)
   Future<void> init() async {
-    // 1. Minta izin
     await requestPermission();
 
-    // 2. Ambil Token via register (Web)
+    // 1. Ambil Token
     try {
       _messaging.onRegistered.listen((fid) {
-        debugPrint('=== FCM Token Diterima ===');
+        debugPrint('=== FCM TOKEN DITERIMA ===');
         debugPrint(fid);
+        // Panggil fungsi simpan ke Supabase (Opsional)
+        // saveTokenToSupabase(fid); 
       });
 
       await _messaging.register(
@@ -43,11 +41,36 @@ class NotificationService {
       debugPrint('Gagal mendaftarkan FCM: $e');
     }
 
-    // 3. Listener saat aplikasi dibuka (Foreground)
+    // 2. Listener Foreground (Saat aplikasi dibuka)
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       debugPrint('=== [FOREGROUND] Notifikasi Diterima ===');
       debugPrint('Title: ${message.notification?.title}');
       debugPrint('Body: ${message.notification?.body}');
+
+      // Tampilkan SnackBar menggunakan messengerKey
+      final title = message.notification?.title ?? 'Notifikasi Baru';
+      final body = message.notification?.body ?? '';
+      
+      messengerKey.currentState?.showSnackBar(
+        SnackBar(
+          content: Text('$title\n$body'),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    });
+  }
+
+  // (OPSIONAL) Simpan token ke database Supabase
+  Future<void> saveTokenToSupabase(String token) async {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) return;
+
+    await Supabase.instance.client.from('device_tokens').upsert({
+      'token': token,
+      'user_id': user.id,
+      'platform': defaultTargetPlatform.name,
+      'updated_at': DateTime.now().toUtc().toIso8601String(),
     });
   }
 }

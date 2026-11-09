@@ -12,11 +12,11 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'ISI_API_KEY_KAMU',
-    appId: 'ISI_APP_ID_KAMU',
-    messagingSenderId: 'ISI_SENDER_ID_KAMU',
-    projectId: 'ISI_PROJECT_ID_KAMU',
-    authDomain: 'ISI_AUTH_DOMAIN_KAMU',
-    storageBucket: 'ISI_STORAGE_BUCKET_KAMU',
+    apiKey: 'AIzaSyACyHOhg_ITlPlN3Hpo0SCwk36K9NzRLdk',
+    appId: '1:196147542758:web:8eb6d8afa56f63f730d927',
+    messagingSenderId: '196147542758',
+    projectId: 'course-notif',
+    authDomain: 'course-notif.firebaseapp.com',
+    storageBucket: 'course-notif.firebasestorage.app',
   );
 }
