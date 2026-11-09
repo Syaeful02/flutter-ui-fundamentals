@@ -1,15 +1,17 @@
+// 2415051059 - Syaeful Darmawan
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/course.dart';
 import '../models/user_profile.dart';
-import '../providers/course_provider.dart'; // Import untuk clearProfile
+import '../providers/course_provider.dart';
 import '../providers/course_state.dart';
 import '../widgets/common_widgets.dart';
 import '../widgets/counter_demo.dart';
 import '../services/auth_service.dart';
 import '../services/profile_service.dart';
+import '../services/notification_service.dart'; // Import NotificationService
 import 'login_page.dart';
 
 class HomeTab extends StatefulWidget {
@@ -30,17 +32,15 @@ class _HomeTabState extends State<HomeTab> {
   void initState() {
     super.initState();
     _profileFuture = ProfileService().getMyProfile();
+    
+    // PANGGIL NOTIFIKASI DI SINI
+    NotificationService.instance.init();
   }
 
   Future<void> _logout() async {
-    // 1. Bersihkan memori profil dari Provider
     context.read<CourseProvider>().clearProfile();
-    
-    // 2. Logout dari Supabase
     await AuthService.instance.logout();
     if (!mounted) return;
-    
-    // 3. Kembali ke halaman Login
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const LoginPage()),
       (route) => false,
@@ -82,7 +82,6 @@ class _HomeTabState extends State<HomeTab> {
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              // --- HEADER IDENTITAS ---
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
